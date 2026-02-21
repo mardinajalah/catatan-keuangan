@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, Touchable, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Index() {
@@ -7,6 +7,17 @@ export default function Index() {
       <View style={styles.content}>
         <View style={styles.headerContent}>
           <Text style={styles.textHeader}>Catatan Keuangan</Text>
+          <View style={styles.buttonHeader}>
+            <TouchableOpacity>
+              <Text>Pengeluaran</Text>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <Text>Pemasukan</Text>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <Text>Laporan</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -25,7 +36,6 @@ const styles = StyleSheet.create({
   headerContent: {
     backgroundColor: '#4E71FF',
     padding: 20,
-    height: 100,
   },
   textHeader: {
     color: '#fff',
@@ -33,4 +43,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
+  buttonHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+  }
 });
