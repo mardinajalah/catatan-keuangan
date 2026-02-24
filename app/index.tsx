@@ -1,6 +1,7 @@
-import Laporan from '@/components/laporan';
-import Pemasukan from '@/components/pemasukan';
-import Pengeluaran from '@/components/pengeluaran';
+import Laporan from '@/app/laporan';
+import Pemasukan from '@/app/pemasukan';
+import Pengeluaran from '@/app/pengeluaran';
+import { Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, PanResponder, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -134,6 +135,27 @@ export default function Index() {
           </View>
         </Animated.View>
       </View>
+
+      {(active === 0 || active === 1) && (
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 30,
+            right: 20,
+            backgroundColor: '#4E71FF',
+            width: 56,
+            height: 56,
+            borderRadius: 999,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Plus
+            color='#fff'
+            size={28}
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 }
