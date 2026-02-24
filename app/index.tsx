@@ -162,10 +162,8 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   itemButtonHeader: {
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingLeft: 18,
-    paddingRight: 18,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
     borderRadius: 50,
   },
   itemButtonActive: {
