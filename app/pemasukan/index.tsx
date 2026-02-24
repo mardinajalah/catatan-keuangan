@@ -8,13 +8,13 @@ const data = [
     id: '2026-02-21',
     dateLabel: 'Sabtu, 21 Feb 2026',
     total: 350000,
-    items: [{ id: 1, title: 'Uang Masuk', description: 'Kiriman', amount: 17000, Icon: BanknoteArrowDown }],
+    items: [{ id: 1, title: 'Uang Masuk', description: 'Kiriman', amount: 350000, Icon: BanknoteArrowDown }],
   },
   {
     id: '2026-02-20',
     dateLabel: "Jum'at, 21 Jan 2026",
     total: 350000,
-    items: [{ id: 3, title: 'Uang Masuk', description: 'kiriman', amount: 20000, Icon: BanknoteArrowDown }],
+    items: [{ id: 3, title: 'Uang Masuk', description: 'kiriman', amount: 350000, Icon: BanknoteArrowDown }],
   },
 ];
 
