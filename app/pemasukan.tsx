@@ -40,7 +40,6 @@ export default Pemasukan;
 const styles = StyleSheet.create({
   inner: {
     flex: 1,
-    backgroundColor: '#f6f5fb',
     paddingTop: 12,
   },
 });

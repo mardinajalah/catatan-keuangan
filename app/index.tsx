@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    backgroundColor: '#eeecfa',
+    backgroundColor: '#f6f5fb',
   },
   slider: {
     flexDirection: 'row',
