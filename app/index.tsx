@@ -151,7 +151,7 @@ export default function Index() {
           }}
         >
           <Plus
-            color='#fff'
+            color='#f6f5fb'
             size={28}
           />
         </View>
