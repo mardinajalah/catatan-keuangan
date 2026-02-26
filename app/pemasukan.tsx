@@ -1,6 +1,6 @@
 import { BanknoteArrowDown } from 'lucide-react-native';
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import DayGroup from '@/components/dayGroup';
 
 const data = [
@@ -8,20 +8,26 @@ const data = [
     id: '2026-02-21',
     dateLabel: 'Sabtu, 21 Feb 2026',
     total: 350000,
-    items: [{ id: 1, title: 'Uang Masuk', description: 'Kiriman', amount: 350000, Icon: BanknoteArrowDown }],
+    items: [
+      { id: 1, title: 'Uang Masuk', description: 'Kiriman', amount: 350000, Icon: BanknoteArrowDown },
+    ],
   },
   {
     id: '2026-02-20',
     dateLabel: "Jum'at, 21 Jan 2026",
     total: 350000,
-    items: [{ id: 3, title: 'Uang Masuk', description: 'kiriman', amount: 350000, Icon: BanknoteArrowDown }],
+    items: [
+      { id: 3, title: 'Uang Masuk', description: 'kiriman', amount: 350000, Icon: BanknoteArrowDown },
+    ],
   },
 ];
 
 const Pemasukan: React.FC = () => {
   return (
-    <View style={styles.inner}>
-      <ScrollView contentContainerStyle={{ gap: 10, paddingVertical: 12 }}>
+    <View className="flex-1 pt-3">
+      <ScrollView
+        contentContainerStyle={{ gap: 10, paddingVertical: 12 }}
+      >
         {data.map((group) => (
           <DayGroup
             key={group.id}
@@ -36,10 +42,3 @@ const Pemasukan: React.FC = () => {
 };
 
 export default Pemasukan;
-
-const styles = StyleSheet.create({
-  inner: {
-    flex: 1,
-    paddingTop: 12,
-  },
-});

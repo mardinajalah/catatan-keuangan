@@ -1,7 +1,7 @@
+import DayGroup from '@/components/dayGroup';
 import { BanknoteArrowUp } from 'lucide-react-native';
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import DayGroup from '@/components/dayGroup';
+import { ScrollView, View } from 'react-native';
 
 const data = [
   {
@@ -23,7 +23,7 @@ const data = [
 
 const Pengeluaran: React.FC = () => {
   return (
-    <View style={styles.inner}>
+    <View className='flex-1 pt-3'>
       <ScrollView contentContainerStyle={{ gap: 10, paddingVertical: 12 }}>
         {data.map((group) => (
           <DayGroup
@@ -39,10 +39,3 @@ const Pengeluaran: React.FC = () => {
 };
 
 export default Pengeluaran;
-
-const styles = StyleSheet.create({
-  inner: {
-    flex: 1,
-    paddingTop: 12,
-  },
-});

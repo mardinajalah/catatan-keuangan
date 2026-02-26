@@ -3,7 +3,7 @@ import Pemasukan from '@/app/pemasukan';
 import Pengeluaran from '@/app/pengeluaran';
 import { Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, PanResponder, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Dimensions, PanResponder, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -49,49 +49,51 @@ export default function Index() {
       toValue: -active * width,
       useNativeDriver: false,
     }).start();
-  }, [active, translateX]);
-
-  const moveIndicatorTo = (index: number, animated = true) => {
-    const layout = btnLayouts.current[index];
-    if (!layout) return;
-    if (!animated) {
-      indicatorLeft.setValue(layout.x);
-      indicatorWidth.setValue(layout.width);
-      return;
-    }
-    Animated.parallel([Animated.timing(indicatorLeft, { toValue: layout.x, duration: 220, useNativeDriver: false }), Animated.timing(indicatorWidth, { toValue: layout.width, duration: 220, useNativeDriver: false })]).start();
-  };
+  }, [active]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.headerContent}>
-        <Text style={styles.textHeader}>Catatan Keuangan</Text>
-
-        <View style={styles.buttonsHeader}>
+    <SafeAreaView className='flex-1 bg-[#4E71FF]'>
+      {/* HEADER */}
+      <View className='pb-2.5 px-4'>
+        <Text className='text-white text-xl font-bold text-center mt-5'>Catatan Keuangan</Text>
+        <View className='flex-row justify-between mt-8 bg-[#405ed3] rounded-full'>
+          {/* INDICATOR */}
           {measured ? (
             <Animated.View
-              style={[
-                styles.indicator,
-                {
-                  width: translateX.interpolate({
-                    inputRange: TABS.map((_, i) => -i * width).reverse(),
-                    outputRange: btnLayouts.current.map((l) => l.width).reverse(),
-                    extrapolate: 'clamp',
-                  }),
-                  transform: [
-                    {
-                      translateX: translateX.interpolate({
-                        inputRange: TABS.map((_, i) => -i * width).reverse(),
-                        outputRange: btnLayouts.current.map((l) => l.x).reverse(),
-                        extrapolate: 'clamp',
-                      }),
-                    },
-                  ],
-                },
-              ]}
+              style={{
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                borderRadius: 999,
+                backgroundColor: '#fff',
+                width: translateX.interpolate({
+                  inputRange: TABS.map((_, i) => -i * width).reverse(),
+                  outputRange: btnLayouts.current.map((l) => l.width).reverse(),
+                  extrapolate: 'clamp',
+                }),
+                transform: [
+                  {
+                    translateX: translateX.interpolate({
+                      inputRange: TABS.map((_, i) => -i * width).reverse(),
+                      outputRange: btnLayouts.current.map((l) => l.x).reverse(),
+                      extrapolate: 'clamp',
+                    }),
+                  },
+                ],
+              }}
             />
           ) : (
-            <Animated.View style={[styles.indicator, { width: indicatorWidth, transform: [{ translateX: indicatorLeft }] }]} />
+            <Animated.View
+              style={{
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                borderRadius: 999,
+                backgroundColor: '#fff',
+                width: indicatorWidth,
+                transform: [{ translateX: indicatorLeft }],
+              }}
+            />
           )}
 
           {TABS.map((label, idx) => (
@@ -103,53 +105,52 @@ export default function Index() {
                 btnLayouts.current[idx] = { x, width: w };
                 if (measuredCount.current === TABS.length && !measured) {
                   setMeasured(true);
-                  moveIndicatorTo(active, false);
                 }
               }}
-              style={styles.itemButtonHeader}
+              className='py-2.5 px-4 rounded-full'
               activeOpacity={1}
-              onPress={() => {
-                setActive(idx);
-                moveIndicatorTo(idx, true);
-              }}
+              onPress={() => setActive(idx)}
             >
-              <Text style={[styles.textButtonHeader, active === idx && styles.textButtonActive]}>{label}</Text>
+              <Text className={`font-semibold ${active === idx ? 'text-[#5409DA]' : 'text-white'}`}>{label}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
 
-      <View style={styles.content}>
+      {/* CONTENT */}
+      <View className='flex-1 bg-[#f6f5fb]'>
         <Animated.View
           {...panResponder.panHandlers}
-          style={[styles.slider, { width: width * TABS.length, transform: [{ translateX }] }]}
+          className='flex-row flex-1'
+          style={{
+            width: width * TABS.length,
+            transform: [{ translateX }],
+          }}
         >
-          <View style={[styles.page, { width }]}>
+          <View
+            style={{ width }}
+            className='flex-1'
+          >
             <Pengeluaran />
           </View>
-          <View style={[styles.page, { width }]}>
+          <View
+            style={{ width }}
+            className='flex-1'
+          >
             <Pemasukan />
           </View>
-          <View style={[styles.page, { width }]}>
+          <View
+            style={{ width }}
+            className='flex-1'
+          >
             <Laporan />
           </View>
         </Animated.View>
       </View>
 
+      {/* FLOATING BUTTON */}
       {(active === 0 || active === 1) && (
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 30,
-            right: 20,
-            backgroundColor: '#4E71FF',
-            width: 56,
-            height: 56,
-            borderRadius: 999,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
+        <View className='absolute bottom-8 right-5 bg-[#4E71FF] w-14 h-14 rounded-full items-center justify-center'>
           <Plus
             color='#f6f5fb'
             size={28}
@@ -159,62 +160,3 @@ export default function Index() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#4E71FF',
-  },
-  headerContent: {
-    paddingBottom: 10,
-    paddingHorizontal: 15,
-  },
-  textHeader: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  buttonsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 30,
-    backgroundColor: '#405ed3',
-    borderRadius: 50,
-  },
-  itemButtonHeader: {
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 50,
-  },
-  itemButtonActive: {
-    backgroundColor: '#fff',
-  },
-  indicator: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: '#fff',
-    borderRadius: 50,
-  },
-  textButtonHeader: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  textButtonActive: {
-    color: '#5409DA',
-  },
-  content: {
-    flex: 1,
-    backgroundColor: '#f6f5fb',
-  },
-  slider: {
-    flexDirection: 'row',
-    flex: 1,
-  },
-  page: {
-    flex: 1,
-  },
-});

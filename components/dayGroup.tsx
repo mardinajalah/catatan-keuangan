@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import TransactionItem from './transactionItem';
 
 type Item = {
@@ -17,20 +17,32 @@ type Props = {
 };
 
 const formatCurrency = (value: number | string) => {
-  const num = typeof value === 'string' ? Number(String(value).replace(/[^0-9]/g, '')) : Number(value);
+  const num =
+    typeof value === 'string'
+      ? Number(String(value).replace(/[^0-9]/g, ''))
+      : Number(value);
+
   if (Number.isNaN(num)) return 'Rp0';
   return 'Rp' + num.toLocaleString('id-ID');
 };
 
 const DayGroup: React.FC<Props> = ({ dateLabel, total, items }) => {
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.date}>{dateLabel}</Text>
-        {typeof total !== 'undefined' ? <Text style={styles.total}>{formatCurrency(total)}</Text> : null}
+    <View className="gap-2">
+      
+      <View className="flex-row justify-between px-5">
+        <Text className="text-[17px] font-bold text-[#5409DA]">
+          {dateLabel}
+        </Text>
+
+        {typeof total !== 'undefined' && (
+          <Text className="text-[17px] font-bold text-[#5409DA]">
+            {formatCurrency(total)}
+          </Text>
+        )}
       </View>
 
-      <View style={styles.card}>
+      <View className="bg-white px-5 py-3 rounded-lg mx-5">
         {items.map((it) => (
           <TransactionItem
             key={it.id}
@@ -46,31 +58,3 @@ const DayGroup: React.FC<Props> = ({ dateLabel, total, items }) => {
 };
 
 export default DayGroup;
-
-const styles = StyleSheet.create({
-  container: {
-    gap: 8,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-  },
-  date: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#5409DA',
-  },
-  total: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#5409DA',
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginHorizontal: 20,
-  },
-});
