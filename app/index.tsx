@@ -1,6 +1,6 @@
-import Laporan from '@/app/laporan';
-import Pemasukan from '@/app/pemasukan';
-import Pengeluaran from '@/app/pengeluaran';
+import Laporan from '@/app/(contents)/laporan';
+import Pemasukan from '@/app/(contents)/pemasukan';
+import Pengeluaran from '@/app/(contents)/pengeluaran';
 import { Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, PanResponder, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
