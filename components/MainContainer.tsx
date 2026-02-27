@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react-native';
+import { ChevronLeft, Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, PanResponder, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,14 +13,24 @@ interface TabItem {
 interface Props {
   title: string;
   tabs: TabItem[];
-  showFab?: boolean;
+  initialActiveTab?: number;
+  showBackButton?: boolean;
   onFabPress?: (activeIndex: number) => void;
+  onBackPress?: () => void;
 }
 
-export default function MainContainer({ title, tabs, showFab, onFabPress }: Props) {
-  const [active, setActive] = useState(0);
+export default function MainContainer({ title, tabs, onFabPress, showBackButton = false, onBackPress, initialActiveTab = 0 }: Props) {
+  const [active, setActive] = useState(initialActiveTab ?? 0);
   const translateX = useRef(new Animated.Value(0)).current;
   const startX = useRef(0);
+
+  useEffect(() => {
+    setActive(initialActiveTab ?? 0);
+
+    // pastikan translateX ikut pindah
+    translateX.setValue(-(initialActiveTab ?? 0) * width);
+    startX.current = -(initialActiveTab ?? 0) * width;
+  }, [initialActiveTab]);
 
   // PAN RESPONDER (FIXED)
   const panResponder = useRef(
@@ -106,66 +116,95 @@ export default function MainContainer({ title, tabs, showFab, onFabPress }: Prop
     <SafeAreaView className='flex-1 bg-[#4E71FF]'>
       {/* HEADER */}
       <View className='pb-2.5 px-4'>
-        <Text className='text-white text-xl font-bold text-center mt-5'>Catatan Keuangan</Text>
-        <View className='flex-row justify-between mt-8 bg-[#405ed3] rounded-full'>
-          {/* INDICATOR */}
-          {measured ? (
-            <Animated.View
-              style={{
-                position: 'absolute',
-                top: 0,
-                bottom: 0,
-                borderRadius: 999,
-                backgroundColor: '#fff',
-                width: translateX.interpolate({
-                  inputRange: TABS.map((_, i) => -i * width).reverse(),
-                  outputRange: btnLayouts.current.map((l) => l.width).reverse(),
-                  extrapolate: 'clamp',
-                }),
-                transform: [
-                  {
-                    translateX: translateX.interpolate({
-                      inputRange: TABS.map((_, i) => -i * width).reverse(),
-                      outputRange: btnLayouts.current.map((l) => l.x).reverse(),
-                      extrapolate: 'clamp',
-                    }),
-                  },
-                ],
-              }}
-            />
+        <View className='flex-row items-center justify-between mt-5'>
+          {/* BACK BUTTON */}
+          {showBackButton ? (
+            <TouchableOpacity
+              onPress={onBackPress}
+              className='w-10 h-10 items-center justify-center'
+              activeOpacity={0.7}
+            >
+              <ChevronLeft
+                size={26}
+                color='white'
+              />
+            </TouchableOpacity>
           ) : (
-            <Animated.View
-              style={{
-                position: 'absolute',
-                top: 0,
-                bottom: 0,
-                borderRadius: 999,
-                backgroundColor: '#fff',
-                width: indicatorWidth,
-                transform: [{ translateX: indicatorLeft }],
-              }}
-            />
+            <View className='w-10' />
           )}
 
-          {TABS.map((label, idx) => (
-            <TouchableOpacity
-              key={label}
-              onLayout={(e) => {
-                const { x, width: w } = e.nativeEvent.layout;
-                if (!btnLayouts.current[idx]) measuredCount.current += 1;
-                btnLayouts.current[idx] = { x, width: w };
-                if (measuredCount.current === TABS.length && !measured) {
-                  setMeasured(true);
-                }
-              }}
-              className='py-2.5 px-4 rounded-full'
-              activeOpacity={1}
-              onPress={() => activateTab(idx)}
-            >
-              <Text className={`font-semibold ${active === idx ? 'text-[#5409DA]' : 'text-white'}`}>{label}</Text>
-            </TouchableOpacity>
-          ))}
+          {/* TITLE */}
+          <Text className='text-white text-xl font-bold'>{title}</Text>
+
+          {/* Spacer supaya title tetap center */}
+          <View className='w-10' />
         </View>
+
+        {/* TAB SECTION */}
+        {tabs.length > 0 && (
+          <View className='mt-8 bg-[#405ed3] rounded-full overflow-hidden'>
+            {/* INDICATOR */}
+            {measured ? (
+              <Animated.View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  borderRadius: 999,
+                  backgroundColor: '#fff',
+                  width: translateX.interpolate({
+                    inputRange: TABS.map((_, i) => -i * width).reverse(),
+                    outputRange: btnLayouts.current.map((l) => l.width).reverse(),
+                    extrapolate: 'clamp',
+                  }),
+                  transform: [
+                    {
+                      translateX: translateX.interpolate({
+                        inputRange: TABS.map((_, i) => -i * width).reverse(),
+                        outputRange: btnLayouts.current.map((l) => l.x).reverse(),
+                        extrapolate: 'clamp',
+                      }),
+                    },
+                  ],
+                }}
+              />
+            ) : (
+              <Animated.View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  borderRadius: 999,
+                  backgroundColor: '#fff',
+                  width: indicatorWidth,
+                  transform: [{ translateX: indicatorLeft }],
+                }}
+              />
+            )}
+
+            {/* TABS */}
+            <View className='flex-row'>
+              {TABS.map((label, idx) => (
+                <TouchableOpacity
+                  key={label}
+                  onLayout={(e) => {
+                    const { x, width: w } = e.nativeEvent.layout;
+                    if (!btnLayouts.current[idx]) measuredCount.current += 1;
+                    btnLayouts.current[idx] = { x, width: w };
+                    if (measuredCount.current === TABS.length && !measured) {
+                      setMeasured(true);
+                    }
+                  }}
+                  className='flex-1 py-3 items-center'
+                  activeOpacity={0.8}
+                  onPress={() => activateTab(idx)}
+                >
+                  <Text className={`font-semibold ${active === idx ? 'text-[#5409DA]' : 'text-white'}`}>{label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
       </View>
 
       {/* CONTENT */}
@@ -191,7 +230,7 @@ export default function MainContainer({ title, tabs, showFab, onFabPress }: Prop
       </View>
 
       {/* FLOATING BUTTON */}
-      {(active === 0 || active === 1) && (
+      {(active === 0 || active === 1) && !showBackButton && (
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => onFabPress?.(active)}

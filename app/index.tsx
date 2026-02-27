@@ -13,10 +13,20 @@ export default function Home() {
         { label: 'Pemasukan', content: <Pemasukan /> },
         { label: 'Laporan', content: <Laporan /> },
       ]}
-      showFab
       onFabPress={(active) => {
-        if (active === 0) router.push('/(tambahCatatan)');
-        if (active === 1) router.push('/(tambahCatatan)?tab=1');
+        if (active === 0) {
+          router.push({
+            pathname: '/(tambahCatatan)',
+            params: { tab: '0' },
+          });
+        }
+
+        if (active === 1) {
+          router.push({
+            pathname: '/(tambahCatatan)',
+            params: { tab: '1' },
+          });
+        }
       }}
     />
   );
