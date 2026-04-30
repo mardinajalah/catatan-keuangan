@@ -43,7 +43,7 @@ const TransactionForm: React.FC<Props> = ({
   categoryPlaceholder,
 }) => {
   const router = useRouter();
-  const { addTransaction } = useTransactions();
+  const { addTransaction, expenses, incomes } = useTransactions();
   const [scrollKey, setScrollKey] = useState(0);
   const [amount, setAmount] = useState('');
   const [title, setTitle] = useState('');
@@ -61,6 +61,9 @@ const TransactionForm: React.FC<Props> = ({
 
   const handleSave = () => {
     const amountValue = Number(amount);
+    const incomeTotal = incomes.reduce((sum, item) => sum + item.amount, 0);
+    const expenseTotal = expenses.reduce((sum, item) => sum + item.amount, 0);
+    const currentBalance = incomeTotal - expenseTotal;
 
     if (!amountValue) {
       Alert.alert('Nominal belum diisi', 'Masukkan jumlah transaksi terlebih dahulu.');
@@ -69,6 +72,14 @@ const TransactionForm: React.FC<Props> = ({
 
     if (!title.trim()) {
       Alert.alert('Nama belum diisi', 'Masukkan nama transaksi terlebih dahulu.');
+      return;
+    }
+
+    if (type === 'expense' && amountValue > currentBalance) {
+      Alert.alert(
+        'Transaksi gagal',
+        `Jumlah pengeluaran melebihi saldo saat ini. Saldo tersedia: Rp${currentBalance.toLocaleString('id-ID')}.`,
+      );
       return;
     }
 
@@ -85,7 +96,13 @@ const TransactionForm: React.FC<Props> = ({
     setTitle('');
     setCategory('');
     Keyboard.dismiss();
-    router.back();
+
+    Alert.alert('Transaksi berhasil', 'Data transaksi berhasil disimpan sementara.', [
+      {
+        text: 'OK',
+        onPress: () => router.back(),
+      },
+    ]);
   };
 
   return (
