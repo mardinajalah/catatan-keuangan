@@ -35,7 +35,12 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
   // PAN RESPONDER (FIXED)
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 5,
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        const horizontalMove = Math.abs(gesture.dx);
+        const verticalMove = Math.abs(gesture.dy);
+
+        return horizontalMove > 12 && horizontalMove > verticalMove * 1.4;
+      },
 
       onPanResponderGrant: () => {
         translateX.stopAnimation((value) => {
