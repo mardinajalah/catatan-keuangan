@@ -1,41 +1,37 @@
-import { BanknoteArrowDown } from 'lucide-react-native';
-import React from 'react';
-import { ScrollView, View } from 'react-native';
 import DayGroup from '@/components/dayGroup';
-
-const data = [
-  {
-    id: '2026-02-21',
-    dateLabel: 'Sabtu, 21 Feb 2026',
-    total: 350000,
-    items: [
-      { id: 1, title: 'Uang Masuk', description: 'Kiriman', amount: 350000, Icon: BanknoteArrowDown },
-    ],
-  },
-  {
-    id: '2026-02-20',
-    dateLabel: "Jum'at, 21 Jan 2026",
-    total: 350000,
-    items: [
-      { id: 3, title: 'Uang Masuk', description: 'kiriman', amount: 350000, Icon: BanknoteArrowDown },
-    ],
-  },
-];
+import { groupTransactionsByDate, useTransactions } from '@/components/TransactionsStore';
+import { BanknoteArrowDown } from 'lucide-react-native';
+import React, { useMemo } from 'react';
+import { ScrollView, Text, View } from 'react-native';
 
 const Pemasukan: React.FC = () => {
+  const { incomes } = useTransactions();
+  const groups = useMemo(() => groupTransactionsByDate(incomes), [incomes]);
+
   return (
-    <View className="flex-1 pt-3">
-      <ScrollView
-        contentContainerStyle={{ gap: 10, paddingVertical: 12 }}
-      >
-        {data.map((group) => (
+    <View className='flex-1 pt-3'>
+      <ScrollView contentContainerStyle={{ gap: 10, paddingVertical: 12 }}>
+        {groups.map((group) => (
           <DayGroup
             key={group.id}
             dateLabel={group.dateLabel}
             total={group.total}
-            items={group.items as any}
+            items={group.items.map((item) => ({
+              id: item.id,
+              title: item.title,
+              description: item.note || item.category,
+              amount: item.amount,
+              Icon: BanknoteArrowDown,
+            }))}
           />
         ))}
+
+        {groups.length === 0 && (
+          <View className='mx-5 bg-white rounded-lg p-5'>
+            <Text className='text-[#222] font-bold text-base'>Belum ada pemasukan</Text>
+            <Text className='text-[#666] mt-1'>Transaksi pemasukan yang disimpan akan tampil di sini.</Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );

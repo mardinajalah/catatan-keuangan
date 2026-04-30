@@ -1,3 +1,10 @@
+import {
+  formatMonthLabel,
+  getCurrentDateInput,
+  getTransactionMonth,
+  Transaction,
+  useTransactions,
+} from '@/components/TransactionsStore';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import {
@@ -10,79 +17,8 @@ import {
   ReceiptText,
   WalletCards,
 } from 'lucide-react-native';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-
-type ExpenseReport = {
-  id: string;
-  date: string;
-  month: string;
-  title: string;
-  category: string;
-  note: string;
-  amount: number;
-};
-
-const incomeReports = [
-  { id: 'in-1', month: '2026-02', amount: 350000 },
-  { id: 'in-2', month: '2026-02', amount: 350000 },
-  { id: 'in-3', month: '2026-03', amount: 500000 },
-  { id: 'in-4', month: '2026-04', amount: 650000 },
-];
-
-const expenseReports: ExpenseReport[] = [
-  {
-    id: 'out-1',
-    date: '2026-02-21',
-    month: '2026-02',
-    title: 'Beli Rokok',
-    category: 'Rokok',
-    note: 'Warkop 1 bungkus',
-    amount: 17000,
-  },
-  {
-    id: 'out-2',
-    date: '2026-02-21',
-    month: '2026-02',
-    title: 'Beli Nasi',
-    category: 'Makanan',
-    note: 'Nasi 1 porsi',
-    amount: 20000,
-  },
-  {
-    id: 'out-3',
-    date: '2026-02-20',
-    month: '2026-02',
-    title: 'Beli Nasi',
-    category: 'Makanan',
-    note: 'Nasi 1 porsi',
-    amount: 20000,
-  },
-  {
-    id: 'out-4',
-    date: '2026-03-04',
-    month: '2026-03',
-    title: 'Paket Data',
-    category: 'Internet',
-    note: 'Kuota bulanan',
-    amount: 65000,
-  },
-  {
-    id: 'out-5',
-    date: '2026-04-12',
-    month: '2026-04',
-    title: 'Belanja Dapur',
-    category: 'Kebutuhan',
-    note: 'Sayur dan beras',
-    amount: 125000,
-  },
-];
-
-const months = [
-  { label: 'Feb 2026', value: '2026-02' },
-  { label: 'Mar 2026', value: '2026-03' },
-  { label: 'Apr 2026', value: '2026-04' },
-];
 
 const formatCurrency = (value: number) => {
   return 'Rp' + value.toLocaleString('id-ID');
@@ -93,7 +29,7 @@ const escapeCsvValue = (value: string | number) => {
   return `"${text}"`;
 };
 
-const createExpenseCsv = (expenses: ExpenseReport[]) => {
+const createExpenseCsv = (expenses: Transaction[]) => {
   const headers = ['Tanggal', 'Judul', 'Kategori', 'Catatan', 'Nominal'];
   const rows = expenses.map((item) => [
     item.date,
@@ -108,7 +44,7 @@ const createExpenseCsv = (expenses: ExpenseReport[]) => {
     .join('\n');
 };
 
-const getCategoryReports = (expenses: ExpenseReport[]) => {
+const getCategoryReports = (expenses: Transaction[]) => {
   const total = expenses.reduce((sum, item) => sum + item.amount, 0);
   const grouped = expenses.reduce<Record<string, number>>((result, item) => {
     result[item.category] = (result[item.category] ?? 0) + item.amount;
@@ -122,21 +58,6 @@ const getCategoryReports = (expenses: ExpenseReport[]) => {
     color: index % 2 === 0 ? '#5409DA' : '#4E71FF',
   }));
 };
-
-const monthlyBars = months.map((month) => {
-  const income = incomeReports
-    .filter((item) => item.month === month.value)
-    .reduce((sum, item) => sum + item.amount, 0);
-  const expense = expenseReports
-    .filter((item) => item.month === month.value)
-    .reduce((sum, item) => sum + item.amount, 0);
-
-  return {
-    label: month.label.split(' ')[0],
-    income: Math.max(18, Math.round(income / 8000)),
-    expense: Math.max(18, Math.round(expense / 2000)),
-  };
-});
 
 const ReportCard = ({
   title,
@@ -170,24 +91,56 @@ const ReportCard = ({
 );
 
 const Laporan = () => {
-  const [selectedMonth, setSelectedMonth] = useState(months[0].value);
+  const { transactions, incomes, expenses } = useTransactions();
+  const currentMonth = getCurrentDateInput().slice(0, 7);
 
-  const selectedMonthLabel = months.find((item) => item.value === selectedMonth)?.label ?? '';
+  const months = useMemo(() => {
+    const transactionMonths = Array.from(
+      new Set(transactions.map((transaction) => getTransactionMonth(transaction.date))),
+    ).sort((a, b) => b.localeCompare(a));
+
+    return transactionMonths.length > 0 ? transactionMonths : [currentMonth];
+  }, [currentMonth, transactions]);
+
+  const [selectedMonth, setSelectedMonth] = useState(months[0]);
+
+  useEffect(() => {
+    if (!months.includes(selectedMonth)) {
+      setSelectedMonth(months[0]);
+    }
+  }, [months, selectedMonth]);
+
+  const selectedMonthLabel = formatMonthLabel(selectedMonth);
 
   const selectedIncomes = useMemo(
-    () => incomeReports.filter((item) => item.month === selectedMonth),
-    [selectedMonth],
+    () => incomes.filter((item) => getTransactionMonth(item.date) === selectedMonth),
+    [incomes, selectedMonth],
   );
 
   const selectedExpenses = useMemo(
-    () => expenseReports.filter((item) => item.month === selectedMonth),
-    [selectedMonth],
+    () => expenses.filter((item) => getTransactionMonth(item.date) === selectedMonth),
+    [expenses, selectedMonth],
   );
 
   const incomeTotal = selectedIncomes.reduce((sum, item) => sum + item.amount, 0);
   const expenseTotal = selectedExpenses.reduce((sum, item) => sum + item.amount, 0);
   const balanceTotal = incomeTotal - expenseTotal;
   const categoryReports = getCategoryReports(selectedExpenses);
+
+  const monthlyBars = months.slice(0, 4).reverse().map((month) => {
+    const income = incomes
+      .filter((item) => getTransactionMonth(item.date) === month)
+      .reduce((sum, item) => sum + item.amount, 0);
+    const expense = expenses
+      .filter((item) => getTransactionMonth(item.date) === month)
+      .reduce((sum, item) => sum + item.amount, 0);
+
+    return {
+      label: formatMonthLabel(month).split(' ')[0],
+      income: income > 0 ? Math.max(18, Math.round(income / 8000)) : 4,
+      expense: expense > 0 ? Math.max(18, Math.round(expense / 2000)) : 4,
+    };
+  });
 
   const insights = [
     selectedExpenses.length > 0
@@ -196,7 +149,7 @@ const Laporan = () => {
     balanceTotal >= 0
       ? 'Saldo masih positif karena pemasukan lebih besar dari pengeluaran.'
       : 'Pengeluaran bulan ini lebih besar dari pemasukan.',
-    'Export CSV bisa dibuka di Excel, Google Sheets, atau aplikasi spreadsheet lain.',
+    'Data ini masih sementara dan akan hilang jika aplikasi direfresh.',
   ];
 
   const handleExportCsv = async () => {
@@ -267,18 +220,18 @@ const Laporan = () => {
             <Text className='text-[#222] font-bold text-base'>Pilih Bulan Export</Text>
           </View>
 
-          <View className='flex-row gap-2'>
+          <View className='flex-row flex-wrap gap-2'>
             {months.map((month) => {
-              const isActive = month.value === selectedMonth;
+              const isActive = month === selectedMonth;
               return (
                 <TouchableOpacity
-                  key={month.value}
+                  key={month}
                   activeOpacity={0.8}
-                  onPress={() => setSelectedMonth(month.value)}
-                  className={`flex-1 rounded-full py-2.5 items-center ${isActive ? 'bg-[#4E71FF]' : 'bg-[#f6f5fb]'}`}
+                  onPress={() => setSelectedMonth(month)}
+                  className={`rounded-full px-4 py-2.5 items-center ${isActive ? 'bg-[#4E71FF]' : 'bg-[#f6f5fb]'}`}
                 >
                   <Text className={`font-bold text-xs ${isActive ? 'text-white' : 'text-[#5409DA]'}`}>
-                    {month.label}
+                    {formatMonthLabel(month)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -412,12 +365,12 @@ const Laporan = () => {
                   <View className='flex-1'>
                     <Text className='text-[#222] font-bold'>{item.title}</Text>
                     <Text className='text-[#666] text-xs mt-1'>
-                      {item.date} • {item.category}
+                      {item.date} - {item.category}
                     </Text>
                   </View>
                   <Text className='text-[#222] font-bold'>{formatCurrency(item.amount)}</Text>
                 </View>
-                <Text className='text-[#666] text-xs mt-1'>{item.note}</Text>
+                {!!item.note && <Text className='text-[#666] text-xs mt-1'>{item.note}</Text>}
               </View>
             ))}
 

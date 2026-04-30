@@ -1,38 +1,37 @@
 import DayGroup from '@/components/dayGroup';
+import { groupTransactionsByDate, useTransactions } from '@/components/TransactionsStore';
 import { BanknoteArrowUp } from 'lucide-react-native';
-import React from 'react';
-import { ScrollView, View } from 'react-native';
-
-const data = [
-  {
-    id: '2026-02-21',
-    dateLabel: 'Sabtu, 21 Feb 2026',
-    total: 37000,
-    items: [
-      { id: 1, title: 'Uang Keluar', description: 'Beli Rokok Warkop 1 bungkus', amount: 17000, Icon: BanknoteArrowUp },
-      { id: 2, title: 'Uang Keluar', description: 'Beli Nasi 1 Porsi', amount: 20000, Icon: BanknoteArrowUp },
-    ],
-  },
-  {
-    id: '2026-02-20',
-    dateLabel: "Jum'at, 20 Feb 2026",
-    total: 20000,
-    items: [{ id: 3, title: 'Uang Keluar', description: 'Beli Nasi 1 Porsi', amount: 20000, Icon: BanknoteArrowUp }],
-  },
-];
+import React, { useMemo } from 'react';
+import { ScrollView, Text, View } from 'react-native';
 
 const Pengeluaran: React.FC = () => {
+  const { expenses } = useTransactions();
+  const groups = useMemo(() => groupTransactionsByDate(expenses), [expenses]);
+
   return (
     <View className='flex-1 pt-3'>
       <ScrollView contentContainerStyle={{ gap: 10, paddingVertical: 12 }}>
-        {data.map((group) => (
+        {groups.map((group) => (
           <DayGroup
             key={group.id}
             dateLabel={group.dateLabel}
             total={group.total}
-            items={group.items as any}
+            items={group.items.map((item) => ({
+              id: item.id,
+              title: item.title,
+              description: item.note || item.category,
+              amount: item.amount,
+              Icon: BanknoteArrowUp,
+            }))}
           />
         ))}
+
+        {groups.length === 0 && (
+          <View className='mx-5 bg-white rounded-lg p-5'>
+            <Text className='text-[#222] font-bold text-base'>Belum ada pengeluaran</Text>
+            <Text className='text-[#666] mt-1'>Transaksi pengeluaran yang disimpan akan tampil di sini.</Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
