@@ -19,6 +19,16 @@ type Props = {
   datePlaceholder: string;
 };
 
+const formatAmountInput = (value: string) => {
+  const numbersOnly = value.replace(/\D/g, '');
+
+  if (!numbersOnly) {
+    return '';
+  }
+
+  return Number(numbersOnly).toLocaleString('id-ID');
+};
+
 const TransactionForm: React.FC<Props> = ({
   amountLabel,
   namePlaceholder,
@@ -26,6 +36,7 @@ const TransactionForm: React.FC<Props> = ({
   datePlaceholder,
 }) => {
   const [scrollKey, setScrollKey] = useState(0);
+  const [amount, setAmount] = useState('');
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (status) => {
@@ -65,6 +76,8 @@ const TransactionForm: React.FC<Props> = ({
             <View className='flex-row items-center'>
               <Text className='text-3xl font-bold text-[#5409DA] mr-2'>Rp</Text>
               <TextInput
+                value={formatAmountInput(amount)}
+                onChangeText={(value) => setAmount(value.replace(/\D/g, ''))}
                 placeholder='0'
                 keyboardType='numeric'
                 className='flex-1 text-3xl font-bold text-[#5409DA]'
