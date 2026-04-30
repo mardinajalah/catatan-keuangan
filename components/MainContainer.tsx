@@ -30,7 +30,7 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
     // pastikan translateX ikut pindah
     translateX.setValue(-(initialActiveTab ?? 0) * width);
     startX.current = -(initialActiveTab ?? 0) * width;
-  }, [initialActiveTab]);
+  }, [initialActiveTab, translateX]);
 
   // PAN RESPONDER (FIXED)
   const panResponder = useRef(
@@ -74,7 +74,7 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
       toValue: -active * width,
       useNativeDriver: false,
     }).start();
-  }, [active]);
+  }, [active, translateX]);
 
   // ===== INDICATOR ANIMATION (FIXED) =====
   const inputRange = tabs.map((_, i) => -i * width).reverse();
