@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { getTransactions, addTransaction as addTransactionApi } from '../utils/transaction';
+import { getToken } from '../utils/storage';
 
 export type TransactionType = 'income' | 'expense';
 
@@ -33,7 +35,10 @@ type TransactionsContextValue = {
   transactions: Transaction[];
   incomes: Transaction[];
   expenses: Transaction[];
-  addTransaction: (input: TransactionInput) => void;
+  isLoading: boolean;
+  addTransaction: (input: TransactionInput) => Promise<void>;
+  refreshTransactions: () => Promise<void>;
+  clearTransactions: () => void;
 };
 
 const TransactionsContext = createContext<TransactionsContextValue | null>(null);
@@ -101,6 +106,40 @@ export const groupTransactionsByDate = (transactions: Transaction[]): Transactio
 
 export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const refreshTransactions = useCallback(async () => {
+    const token = await getToken();
+    if (!token) return;
+
+    setIsLoading(true);
+    try {
+      const data = await getTransactions();
+      const mappedData: Transaction[] = data.map((t: any) => ({
+        id: t.id,
+        type: t.type.toLowerCase() as TransactionType,
+        title: t.description,
+        category: 'Lainnya',
+        date: t.date.split('T')[0],
+        note: '',
+        amount: t.amount,
+        createdAt: t.createdAt,
+      }));
+      setTransactions(mappedData);
+    } catch (error) {
+      console.error('Failed to refresh transactions:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshTransactions();
+  }, [refreshTransactions]);
+
+  const clearTransactions = useCallback(() => {
+    setTransactions([]);
+  }, []);
 
   const value = useMemo<TransactionsContextValue>(() => {
     const incomes = transactions.filter((transaction) => transaction.type === 'income');
@@ -110,24 +149,25 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       transactions,
       incomes,
       expenses,
-      addTransaction: (input) => {
-        const now = new Date().toISOString();
-
-        setTransactions((current) => [
-          {
-            ...input,
-            id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-            date: normalizeDate(input.date),
-            title: input.title.trim(),
-            category: input.category.trim(),
-            note: input.note.trim(),
-            createdAt: now,
-          },
-          ...current,
-        ]);
+      isLoading,
+      refreshTransactions,
+      clearTransactions,
+      addTransaction: async (input) => {
+        try {
+          await addTransactionApi({
+            type: input.type.toUpperCase() as 'INCOME' | 'EXPENSE',
+            amount: input.amount,
+            description: input.title,
+            date: input.date,
+          });
+          await refreshTransactions();
+        } catch (error) {
+          console.error('Failed to add transaction:', error);
+          throw error;
+        }
       },
     };
-  }, [transactions]);
+  }, [transactions, isLoading, refreshTransactions, clearTransactions]);
 
   return (
     <TransactionsContext.Provider value={value}>

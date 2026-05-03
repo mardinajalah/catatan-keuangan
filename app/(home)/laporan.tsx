@@ -18,7 +18,7 @@ import {
   WalletCards,
 } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 
 const formatCurrency = (value: number) => {
   return 'Rp' + value.toLocaleString('id-ID');
@@ -91,7 +91,7 @@ const ReportCard = ({
 );
 
 const Laporan = () => {
-  const { transactions, incomes, expenses } = useTransactions();
+  const { transactions, incomes, expenses, isLoading } = useTransactions();
   const currentMonth = getCurrentDateInput().slice(0, 7);
 
   const months = useMemo(() => {
@@ -149,8 +149,16 @@ const Laporan = () => {
     balanceTotal >= 0
       ? 'Saldo masih positif karena pemasukan lebih besar dari pengeluaran.'
       : 'Pengeluaran bulan ini lebih besar dari pemasukan.',
-    'Data ini masih sementara dan akan hilang jika aplikasi direfresh.',
+    'Laporan ini diperbarui secara otomatis dari server.',
   ];
+
+  if (isLoading && transactions.length === 0) {
+    return (
+      <View className='flex-1 justify-center items-center'>
+        <ActivityIndicator size="large" color="#4E71FF" />
+      </View>
+    );
+  }
 
   const handleExportCsv = async () => {
     if (selectedExpenses.length === 0) {

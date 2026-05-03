@@ -2,11 +2,19 @@ import DayGroup from '@/components/dayGroup';
 import { groupTransactionsByDate, useTransactions } from '@/components/TransactionsStore';
 import { BanknoteArrowUp } from 'lucide-react-native';
 import React, { useMemo } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View, ActivityIndicator } from 'react-native';
 
 const Pengeluaran: React.FC = () => {
-  const { expenses } = useTransactions();
+  const { expenses, isLoading } = useTransactions();
   const groups = useMemo(() => groupTransactionsByDate(expenses), [expenses]);
+
+  if (isLoading && expenses.length === 0) {
+    return (
+      <View className='flex-1 justify-center items-center'>
+        <ActivityIndicator size="large" color="#4E71FF" />
+      </View>
+    );
+  }
 
   return (
     <View className='flex-1 pt-3'>

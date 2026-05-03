@@ -17,9 +17,10 @@ interface Props {
   showBackButton?: boolean;
   onFabPress?: (activeIndex: number) => void;
   onBackPress?: () => void;
+  renderRightAction?: () => React.ReactNode;
 }
 
-export default function MainContainer({ title, tabs, onFabPress, showBackButton = false, onBackPress, initialActiveTab = 0 }: Props) {
+export default function MainContainer({ title, tabs, onFabPress, showBackButton = false, onBackPress, initialActiveTab = 0, renderRightAction }: Props) {
   const [active, setActive] = useState(initialActiveTab ?? 0);
   const translateX = useRef(new Animated.Value(0)).current;
   const startX = useRef(0);
@@ -141,8 +142,10 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
           {/* TITLE */}
           <Text className='text-white text-xl font-bold'>{title}</Text>
 
-          {/* Spacer supaya title tetap center */}
-          <View className='w-10' />
+          {/* Action area */}
+          <View className='w-10 items-center justify-center'>
+            {renderRightAction ? renderRightAction() : null}
+          </View>
         </View>
 
         {/* TAB SECTION */}
