@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { Mail, Lock, User } from 'lucide-react-native';
 
 interface AuthFormProps {
   type: 'login' | 'register';
+  isLoading?: boolean;
+  errorMessage?: string | null;
   onSubmit: (data: any) => void;
   onFooterLinkPress: () => void;
 }
 
-export default function AuthForm({ type, onSubmit, onFooterLinkPress }: AuthFormProps) {
+export default function AuthForm({ type, isLoading = false, errorMessage = null, onSubmit, onFooterLinkPress }: AuthFormProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -47,6 +49,7 @@ export default function AuthForm({ type, onSubmit, onFooterLinkPress }: AuthForm
                 placeholderTextColor="#9ca3af"
                 value={name}
                 onChangeText={setName}
+                editable={!isLoading}
               />
             </View>
           </View>
@@ -64,6 +67,7 @@ export default function AuthForm({ type, onSubmit, onFooterLinkPress }: AuthForm
               autoCapitalize="none"
               value={email}
               onChangeText={setEmail}
+              editable={!isLoading}
             />
           </View>
         </View>
@@ -79,22 +83,31 @@ export default function AuthForm({ type, onSubmit, onFooterLinkPress }: AuthForm
               secureTextEntry
               value={password}
               onChangeText={setPassword}
+              editable={!isLoading}
             />
           </View>
         </View>
         
+        {errorMessage && (
+          <Text className="text-red-500 text-sm mb-4 text-center">{errorMessage}</Text>
+        )}
+        
         {isLogin && (
-          <TouchableOpacity className="mb-6 items-end">
+          <TouchableOpacity className="mb-6 items-end" disabled={isLoading}>
             <Text className="text-sm font-medium text-[#4E71FF]">Lupa Password?</Text>
           </TouchableOpacity>
         )}
         
         <TouchableOpacity 
-          className="bg-[#4E71FF] rounded-xl py-4 items-center shadow-sm"
+          className="bg-[#4E71FF] rounded-xl py-4 items-center shadow-sm flex-row justify-center"
           onPress={handleSubmit}
+          disabled={isLoading}
         >
+          {isLoading ? (
+            <ActivityIndicator color="#ffffff" style={{ marginRight: 8 }} />
+          ) : null}
           <Text className="text-white font-bold text-lg">
-            {isLogin ? 'Masuk' : 'Daftar Sekarang'}
+            {isLoading ? 'Memproses...' : (isLogin ? 'Masuk' : 'Daftar Sekarang')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -103,7 +116,7 @@ export default function AuthForm({ type, onSubmit, onFooterLinkPress }: AuthForm
         <Text className="text-gray-500 text-base">
           {isLogin ? 'Belum punya akun? ' : 'Sudah punya akun? '}
         </Text>
-        <TouchableOpacity onPress={onFooterLinkPress}>
+        <TouchableOpacity onPress={onFooterLinkPress} disabled={isLoading}>
           <Text className="text-[#4E71FF] font-bold text-base">
             {isLogin ? 'Daftar' : 'Masuk'}
           </Text>
