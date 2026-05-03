@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { saveToken } from '../../utils/storage';
 import AuthForm from '../../components/AuthForm';
 import api from '../../utils/api';
 
@@ -19,7 +19,7 @@ export default function LoginScreen() {
       });
       
       if (response.data.token) {
-        await SecureStore.setItemAsync('userToken', response.data.token);
+        await saveToken(response.data.token);
         router.replace('/'); 
       }
     } catch (err: any) {

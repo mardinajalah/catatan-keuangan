@@ -59,7 +59,9 @@ const TransactionForm: React.FC<Props> = ({
     return () => subscription.remove();
   }, []);
 
-  const handleSave = () => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
     const amountValue = Number(amount);
     const incomeTotal = incomes.reduce((sum, item) => sum + item.amount, 0);
     const expenseTotal = expenses.reduce((sum, item) => sum + item.amount, 0);
@@ -83,26 +85,34 @@ const TransactionForm: React.FC<Props> = ({
       return;
     }
 
-    addTransaction({
-      type,
-      title,
-      category: category || 'Lainnya',
-      date: getCurrentDateInput(),
-      note: '',
-      amount: amountValue,
-    });
+    setIsSaving(true);
+    try {
+      await addTransaction({
+        type,
+        title,
+        category: category || 'Lainnya',
+        date: getCurrentDateInput(),
+        note: '',
+        amount: amountValue,
+      });
 
-    setAmount('');
-    setTitle('');
-    setCategory('');
-    Keyboard.dismiss();
+      setAmount('');
+      setTitle('');
+      setCategory('');
+      Keyboard.dismiss();
 
-    Alert.alert('Transaksi berhasil', 'Data transaksi berhasil disimpan sementara.', [
-      {
-        text: 'OK',
-        onPress: () => router.back(),
-      },
-    ]);
+      Alert.alert('Transaksi berhasil', 'Data transaksi berhasil disimpan.', [
+        {
+          text: 'OK',
+          onPress: () => router.back(),
+        },
+      ]);
+    } catch (error) {
+      Alert.alert('Error', 'Gagal menyimpan transaksi. Silakan coba lagi.');
+    } finally {
+      setIsSaving(true);
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -183,9 +193,12 @@ const TransactionForm: React.FC<Props> = ({
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={handleSave}
-            className='bg-[#4E71FF] rounded-2xl py-4 items-center'
+            disabled={isSaving}
+            className={`bg-[#4E71FF] rounded-2xl py-4 items-center ${isSaving ? 'opacity-70' : ''}`}
           >
-            <Text className='text-white font-bold text-lg'>Simpan</Text>
+            <Text className='text-white font-bold text-lg'>
+              {isSaving ? 'Menyimpan...' : 'Simpan'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
