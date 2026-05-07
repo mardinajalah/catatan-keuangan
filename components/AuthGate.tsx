@@ -55,16 +55,6 @@ const AuthGate: React.FC<Props> = ({ children }) => {
     return <AuthLoading />;
   }
 
-  const isAuthRoute = segments[0] === '(auth)';
-
-  if (!user && !isAuthRoute) {
-    return <AuthLoading />;
-  }
-
-  if (user && segments[1] === 'login') {
-    return <AuthLoading />;
-  }
-
   return <>{children}</>;
 };
 

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { router } from 'expo-router';
 import { getAuthToken, logoutFromFirebase } from './auth';
 
-const DEFAULT_API_URL = 'http://192.168.110.239:5000';
+const DEFAULT_API_URL = 'https://api-catatan-keuangan.vercel.app/api';
 
 const normalizeApiUrl = (url: string) => {
   const trimmedUrl = url.replace(/\/$/, '');
