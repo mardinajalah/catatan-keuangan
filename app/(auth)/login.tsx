@@ -4,7 +4,6 @@ import { saveToken } from '../../utils/storage';
 import AuthForm from '../../components/AuthForm';
 import api from '../../utils/api';
 import { useTransactions } from '../../components/TransactionsStore';
-import { loginWithFirebase } from '../../utils/auth';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -16,22 +15,21 @@ export default function LoginScreen() {
     setIsLoading(true);
     setError(null);
     try {
-      const { user, token } = await loginWithFirebase({
+      const response = await api.post('/auth/login', {
         email: data.email,
         password: data.password,
       });
       
-      await saveToken(token);
-      await api.post('/auth/sync-profile', {
-        name: user.displayName || '',
-      });
-      await refreshTransactions();
-      router.replace('/'); 
+      if (response.data.token) {
+        await saveToken(response.data.token);
+        await refreshTransactions(); // Fetch new user's data before navigating
+        router.replace('/'); 
+      }
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.message) {
         setError(err.response.data.message);
       } else {
-        setError(err.message || 'Terjadi kesalahan koneksi server. Pastikan backend menyala.');
+        setError('Terjadi kesalahan koneksi server. Pastikan backend menyala.');
       }
     } finally {
       setIsLoading(false);

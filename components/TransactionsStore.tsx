@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { getTransactions, addTransaction as addTransactionApi } from '../utils/transaction';
-import { getAuthToken } from '../utils/auth';
+import { getToken } from '../utils/storage';
 
 export type TransactionType = 'income' | 'expense';
 
@@ -109,7 +109,7 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [isLoading, setIsLoading] = useState(false);
 
   const refreshTransactions = useCallback(async () => {
-    const token = await getAuthToken();
+    const token = await getToken();
     if (!token) return;
 
     setIsLoading(true);
@@ -118,10 +118,10 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const mappedData: Transaction[] = data.map((t: any) => ({
         id: t.id,
         type: t.type.toLowerCase() as TransactionType,
-        title: t.title || t.description,
-        category: t.category || 'Lainnya',
+        title: t.description,
+        category: 'Lainnya',
         date: t.date.split('T')[0],
-        note: t.note || '',
+        note: '',
         amount: t.amount,
         createdAt: t.createdAt,
       }));
@@ -157,9 +157,7 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           await addTransactionApi({
             type: input.type.toUpperCase() as 'INCOME' | 'EXPENSE',
             amount: input.amount,
-            title: input.title,
-            category: input.category || 'Lainnya',
-            note: input.note || '',
+            description: input.title,
             date: input.date,
           });
           await refreshTransactions();
