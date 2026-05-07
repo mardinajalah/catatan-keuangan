@@ -3,6 +3,8 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { getAuthToken, logoutFromFirebase } from './auth';
 
+const DEFAULT_API_URL = 'https://api-catatan-keuangan.vercel.app';
+
 const normalizeApiUrl = (url: string) => {
   const trimmedUrl = url.replace(/\/$/, '');
 
@@ -27,13 +29,16 @@ const getBaseUrl = () => {
     return normalizeApiUrl(process.env.EXPO_PUBLIC_API_BASE_URL);
   }
 
-  const expoHost = getExpoHost();
+  if (!__DEV__) {
+    return normalizeApiUrl(DEFAULT_API_URL);
+  }
 
+  const expoHost = getExpoHost();
   if (expoHost) {
     return `http://${expoHost}:5000/api`;
   }
 
-  return 'http://192.168.110.239:5000/api';
+  return normalizeApiUrl(DEFAULT_API_URL);
 };
 
 const BASE_URL = getBaseUrl();
