@@ -3,7 +3,8 @@ import { useRouter } from 'expo-router';
 import { Alert } from 'react-native';
 import AuthForm from '../../components/AuthForm';
 import api from '../../utils/api';
-import { registerWithFirebase } from '../../utils/auth';
+import { deleteFirebaseUser, logoutFromFirebase, registerWithFirebase } from '../../utils/auth';
+import { getApiErrorMessage, getFirebaseAuthErrorMessage } from '../../utils/errors';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -19,30 +20,58 @@ export default function RegisterScreen() {
         return;
       }
 
-      await registerWithFirebase({
-        name: data.name,
-        email: data.email,
-        password: data.password,
-      });
+      let registerResult;
 
-      await api.post('/auth/sync-profile', { name: data.name });
+      try {
+        registerResult = await registerWithFirebase({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+        });
+      } catch (firebaseError) {
+        setError(
+          getFirebaseAuthErrorMessage(firebaseError) ||
+            'Register Firebase gagal. Periksa email, password, dan koneksi internet.'
+        );
+        return;
+      }
+
+      try {
+        await api.post('/auth/sync-profile', { name: data.name });
+      } catch (syncError) {
+        let rollbackMessage = 'Akun Firebase yang baru dibuat sudah dihapus.';
+
+        try {
+          await deleteFirebaseUser(registerResult.user);
+        } catch (rollbackError) {
+          await logoutFromFirebase();
+          rollbackMessage =
+            'Akun Firebase mungkin masih ada karena proses rollback gagal. Coba hapus user tersebut dari Firebase Console.';
+        }
+
+        setError(
+          `Register gagal karena akun belum bisa sinkron ke backend. ${rollbackMessage} ${getApiErrorMessage(
+            syncError,
+            'Periksa konfigurasi backend Vercel.'
+          )}`
+        );
+        return;
+      }
+
+      await logoutFromFirebase();
       
-      Alert.alert('Sukses', 'Registrasi berhasil!', [
-        { text: 'OK', onPress: () => router.replace('/') }
+      Alert.alert('Sukses', 'Registrasi berhasil. Silakan login.', [
+        { text: 'OK', onPress: () => router.replace('/login') }
       ]);
     } catch (err: any) {
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError(err.message || 'Terjadi kesalahan koneksi server. Pastikan backend menyala.');
-      }
+      setError(getApiErrorMessage(err, 'Terjadi kesalahan saat register.'));
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoToLogin = () => {
-    router.push('/(auth)/login');
+    router.push('/login');
   };
 
   return (

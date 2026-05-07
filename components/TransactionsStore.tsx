@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { getTransactions, addTransaction as addTransactionApi } from '../utils/transaction';
 import { getAuthToken } from '../utils/auth';
+import { auth } from '../utils/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export type TransactionType = 'income' | 'expense';
 
@@ -108,7 +110,16 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const clearTransactions = useCallback(() => {
+    setTransactions([]);
+  }, []);
+
   const refreshTransactions = useCallback(async () => {
+    if (!auth.currentUser) {
+      setTransactions([]);
+      return;
+    }
+
     const token = await getAuthToken();
     if (!token) return;
 
@@ -134,12 +145,16 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, []);
 
   useEffect(() => {
-    refreshTransactions();
-  }, [refreshTransactions]);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        refreshTransactions();
+      } else {
+        clearTransactions();
+      }
+    });
 
-  const clearTransactions = useCallback(() => {
-    setTransactions([]);
-  }, []);
+    return unsubscribe;
+  }, [clearTransactions, refreshTransactions]);
 
   const value = useMemo<TransactionsContextValue>(() => {
     const incomes = transactions.filter((transaction) => transaction.type === 'income');

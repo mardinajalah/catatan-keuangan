@@ -4,7 +4,8 @@ import { saveToken } from '../../utils/storage';
 import AuthForm from '../../components/AuthForm';
 import api from '../../utils/api';
 import { useTransactions } from '../../components/TransactionsStore';
-import { loginWithFirebase } from '../../utils/auth';
+import { loginWithFirebase, logoutFromFirebase } from '../../utils/auth';
+import { getApiErrorMessage, getFirebaseAuthErrorMessage } from '../../utils/errors';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -16,30 +17,51 @@ export default function LoginScreen() {
     setIsLoading(true);
     setError(null);
     try {
-      const { user, token } = await loginWithFirebase({
-        email: data.email,
-        password: data.password,
-      });
+      let loginResult;
+
+      try {
+        loginResult = await loginWithFirebase({
+          email: data.email,
+          password: data.password,
+        });
+      } catch (firebaseError) {
+        setError(
+          getFirebaseAuthErrorMessage(firebaseError) ||
+            'Login Firebase gagal. Periksa email, password, dan koneksi internet.'
+        );
+        return;
+      }
+
+      const { user, token } = loginResult;
       
       await saveToken(token);
-      await api.post('/auth/sync-profile', {
-        name: user.displayName || '',
-      });
+
+      try {
+        await api.post('/auth/sync-profile', {
+          name: user.displayName || '',
+        });
+      } catch (syncError) {
+        await logoutFromFirebase();
+        setError(
+          `Login Firebase berhasil, tetapi gagal sinkron ke backend. ${getApiErrorMessage(
+            syncError,
+            'Periksa konfigurasi backend Vercel.'
+          )}`
+        );
+        return;
+      }
+
       await refreshTransactions();
       router.replace('/'); 
     } catch (err: any) {
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError(err.message || 'Terjadi kesalahan koneksi server. Pastikan backend menyala.');
-      }
+      setError(getApiErrorMessage(err, 'Terjadi kesalahan saat login.'));
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoToRegister = () => {
-    router.push('/(auth)/register');
+    router.push('/register');
   };
 
   return (

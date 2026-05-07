@@ -26,7 +26,7 @@ export default function Home() {
               console.error('Logout error:', error);
             } finally {
               clearTransactions();
-              router.replace('/(auth)/login');
+              router.replace('/login');
             }
           }
         }
