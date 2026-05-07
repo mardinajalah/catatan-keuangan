@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { Alert } from 'react-native';
 import AuthForm from '../../components/AuthForm';
 import api from '../../utils/api';
+import { registerWithFirebase } from '../../utils/auth';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -13,20 +14,27 @@ export default function RegisterScreen() {
     setIsLoading(true);
     setError(null);
     try {
-      await api.post('/auth/register', {
+      if (!data.name || !data.email || !data.password) {
+        setError('Nama, email, dan password wajib diisi');
+        return;
+      }
+
+      await registerWithFirebase({
         name: data.name,
         email: data.email,
         password: data.password,
       });
+
+      await api.post('/auth/sync-profile', { name: data.name });
       
-      Alert.alert('Sukses', 'Registrasi berhasil! Silakan masuk.', [
-        { text: 'OK', onPress: () => router.replace('/(auth)/login') }
+      Alert.alert('Sukses', 'Registrasi berhasil!', [
+        { text: 'OK', onPress: () => router.replace('/') }
       ]);
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.message) {
         setError(err.response.data.message);
       } else {
-        setError('Terjadi kesalahan koneksi server. Pastikan backend menyala.');
+        setError(err.message || 'Terjadi kesalahan koneksi server. Pastikan backend menyala.');
       }
     } finally {
       setIsLoading(false);

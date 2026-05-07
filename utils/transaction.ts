@@ -4,8 +4,11 @@ export interface Transaction {
   id: string;
   userId: string;
   type: 'INCOME' | 'EXPENSE';
+  title: string;
+  category: string;
+  note: string;
   amount: number;
-  description: string;
+  description?: string;
   date: string;
   createdAt: string;
   updatedAt: string;
@@ -14,7 +17,9 @@ export interface Transaction {
 export interface CreateTransactionData {
   type: 'INCOME' | 'EXPENSE';
   amount: number;
-  description: string;
+  title: string;
+  category: string;
+  note: string;
   date: string;
 }
 
