@@ -5,8 +5,9 @@ import { TouchableOpacity, Alert } from 'react-native';
 import Laporan from './laporan';
 import Pemasukan from './pemasukan';
 import Pengeluaran from './pengeluaran';
+import api from '../../utils/api';
+import { removeToken } from '../../utils/storage';
 import { useTransactions } from '@/components/TransactionsStore';
-import { logoutFromFirebase } from '../../utils/auth';
 
 export default function Home() {
   const { clearTransactions } = useTransactions();
@@ -21,10 +22,13 @@ export default function Home() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await logoutFromFirebase();
+              // Panggil endpoint logout di backend
+              await api.post('/auth/logout');
             } catch (error) {
               console.error('Logout error:', error);
             } finally {
+              // Hapus token lokal dan bersihkan state transaksi
+              await removeToken();
               clearTransactions();
               router.replace('/(auth)/login');
             }

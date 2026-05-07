@@ -1,54 +1,21 @@
 import axios from 'axios';
-import Constants from 'expo-constants';
+import { getToken, removeToken } from './storage';
 import { router } from 'expo-router';
-import { getAuthToken, logoutFromFirebase } from './auth';
 
-const normalizeApiUrl = (url: string) => {
-  const trimmedUrl = url.replace(/\/$/, '');
-
-  return trimmedUrl.endsWith('/api') ? trimmedUrl : `${trimmedUrl}/api`;
-};
-
-const getExpoHost = () => {
-  const constants = Constants as typeof Constants & {
-    manifest?: { debuggerHost?: string };
-    manifest2?: { extra?: { expoClient?: { hostUri?: string } } };
-  };
-  const hostUri =
-    Constants.expoConfig?.hostUri ||
-    constants.manifest?.debuggerHost ||
-    constants.manifest2?.extra?.expoClient?.hostUri;
-
-  return hostUri?.split(':')[0];
-};
-
-const getBaseUrl = () => {
-  if (process.env.EXPO_PUBLIC_API_BASE_URL) {
-    return normalizeApiUrl(process.env.EXPO_PUBLIC_API_BASE_URL);
-  }
-
-  const expoHost = getExpoHost();
-
-  if (expoHost) {
-    return `http://${expoHost}:5000/api`;
-  }
-
-  return 'http://192.168.110.239:5000/api';
-};
-
-const BASE_URL = getBaseUrl();
+// Gunakan IP WiFi lokal komputer agar bisa diakses baik dari Emulator maupun HP Fisik
+const BASE_URL = 'http://192.168.100.111:5000/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+// Request Interceptor: Tambahkan token ke setiap request
 api.interceptors.request.use(
   async (config) => {
-    const token = await getAuthToken();
+    const token = await getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -59,12 +26,14 @@ api.interceptors.request.use(
   }
 );
 
+// Response Interceptor: Tangani error 401 (Unauthorized)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response && [401, 403].includes(error.response.status)) {
-      await logoutFromFirebase();
-      router.replace('/(auth)/login');
+    if (error.response && error.response.status === 401) {
+      // Jika token tidak valid atau expired, hapus token dan redirect ke login
+      await removeToken();
+      router.replace('/login');
     }
     return Promise.reject(error);
   }
