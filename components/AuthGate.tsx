@@ -39,15 +39,8 @@ const AuthGate: React.FC<Props> = ({ children }) => {
     }
 
     const isAuthRoute = segments[0] === '(auth)';
-    const authScreen = segments[1];
-
     if (!user && !isAuthRoute) {
       router.replace('/login');
-      return;
-    }
-
-    if (user && authScreen === 'login') {
-      router.replace('/');
     }
   }, [isReady, segments, user]);
 
