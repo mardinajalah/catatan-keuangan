@@ -3,6 +3,7 @@ import {
   TransactionType,
   useTransactions,
 } from '@/components/TransactionsStore';
+import { normalizeCategory } from '@/utils/category';
 import { useRouter } from 'expo-router';
 import { Banknote, Tag } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -89,8 +90,8 @@ const TransactionForm: React.FC<Props> = ({
     try {
       await addTransaction({
         type,
-        title,
-        category: category || 'Lainnya',
+        title: title.trim(),
+        category: normalizeCategory(category),
         date: getCurrentDateInput(),
         note: '',
         amount: amountValue,

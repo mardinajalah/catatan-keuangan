@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState, useCall
 import { getTransactions, addTransaction as addTransactionApi } from '../utils/transaction';
 import { getAuthToken } from '../utils/auth';
 import { auth } from '../utils/firebase';
+import { normalizeCategory } from '../utils/category';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export type TransactionType = 'income' | 'expense';
@@ -130,7 +131,7 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         id: t.id,
         type: t.type.toLowerCase() as TransactionType,
         title: t.title || t.description,
-        category: t.category || 'Lainnya',
+        category: normalizeCategory(t.category),
         date: t.date.split('T')[0],
         note: t.note || '',
         amount: t.amount,
@@ -173,7 +174,7 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ 
             type: input.type.toUpperCase() as 'INCOME' | 'EXPENSE',
             amount: input.amount,
             title: input.title,
-            category: input.category || 'Lainnya',
+            category: normalizeCategory(input.category),
             note: input.note || '',
             date: input.date,
           });
