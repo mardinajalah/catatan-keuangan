@@ -3,12 +3,12 @@ import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth, initializeAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyC-ebKm5fk_k-LLjh_WLGeMecBQAwCuI18',
-  authDomain: 'catatan-keuangan-985ec.firebaseapp.com',
-  projectId: 'catatan-keuangan-985ec',
-  storageBucket: 'catatan-keuangan-985ec.firebasestorage.app',
-  messagingSenderId: '1027960196833',
-  appId: '1:1027960196833:web:a4ada563da575c61eaf1a0',
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
 export const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);

@@ -2,8 +2,6 @@ import axios from 'axios';
 import { router } from 'expo-router';
 import { getAuthToken, logoutFromFirebase } from './auth';
 
-const DEFAULT_API_URL = 'https://api-catatan-keuangan.vercel.app/api';
-
 const normalizeApiUrl = (url: string) => {
   const trimmedUrl = url.replace(/\/$/, '');
 
@@ -11,11 +9,9 @@ const normalizeApiUrl = (url: string) => {
 };
 
 const getBaseUrl = () => {
-  if (process.env.EXPO_PUBLIC_API_BASE_URL) {
-    return normalizeApiUrl(process.env.EXPO_PUBLIC_API_BASE_URL);
-  }
+  const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
 
-  return normalizeApiUrl(DEFAULT_API_URL);
+  return apiUrl ? normalizeApiUrl(apiUrl) : '';
 };
 
 export const API_BASE_URL = getBaseUrl();
