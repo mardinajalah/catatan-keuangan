@@ -5,6 +5,7 @@ import {
   Transaction,
   useTransactions,
 } from '@/components/TransactionsStore';
+import { LaporanSkeleton } from '@/components/Skeleton';
 import { getCategoryKey, normalizeCategory } from '@/utils/category';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -16,7 +17,7 @@ import {
   ReceiptText,
 } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const formatCurrency = (value: number) => {
   return 'Rp' + value.toLocaleString('id-ID');
@@ -82,7 +83,7 @@ const SummaryMetric = ({
 );
 
 const Laporan = () => {
-  const { transactions, incomes, expenses, isLoading } = useTransactions();
+  const { transactions, incomes, expenses, isLoading, refreshTransactions } = useTransactions();
   const currentMonth = getCurrentDateInput().slice(0, 7);
 
   const months = useMemo(() => {
@@ -138,12 +139,8 @@ const Laporan = () => {
     };
   });
 
-  if (isLoading && transactions.length === 0) {
-    return (
-      <View className='flex-1 justify-center items-center'>
-        <ActivityIndicator size="large" color="#4E71FF" />
-      </View>
-    );
+  if (isLoading) {
+    return <LaporanSkeleton />;
   }
 
   const handleExportCsv = async () => {
@@ -176,6 +173,14 @@ const Laporan = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 12, gap: 12 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refreshTransactions}
+            tintColor="#4E71FF"
+            colors={['#4E71FF']}
+          />
+        }
       >
         <View className='bg-white rounded-lg p-4'>
           <View className='flex-row items-center justify-between gap-3 mb-3'>
