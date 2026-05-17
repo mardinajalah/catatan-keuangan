@@ -1,24 +1,31 @@
 import DayGroup from '@/components/dayGroup';
+import { TransactionListSkeleton } from '@/components/Skeleton';
 import { groupTransactionsByDate, useTransactions } from '@/components/TransactionsStore';
 import { BanknoteArrowDown } from 'lucide-react-native';
 import React, { useMemo } from 'react';
-import { ScrollView, Text, View, ActivityIndicator } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 
 const Pemasukan: React.FC = () => {
-  const { incomes, isLoading } = useTransactions();
+  const { incomes, isLoading, refreshTransactions } = useTransactions();
   const groups = useMemo(() => groupTransactionsByDate(incomes), [incomes]);
 
-  if (isLoading && incomes.length === 0) {
-    return (
-      <View className='flex-1 justify-center items-center'>
-        <ActivityIndicator size="large" color="#4E71FF" />
-      </View>
-    );
+  if (isLoading) {
+    return <TransactionListSkeleton />;
   }
 
   return (
     <View className='flex-1 pt-3'>
-      <ScrollView contentContainerStyle={{ gap: 10, paddingVertical: 12 }}>
+      <ScrollView
+        contentContainerStyle={{ gap: 10, paddingVertical: 12 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refreshTransactions}
+            tintColor="#4E71FF"
+            colors={['#4E71FF']}
+          />
+        }
+      >
         {groups.map((group) => (
           <DayGroup
             key={group.id}
