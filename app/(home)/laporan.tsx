@@ -5,6 +5,7 @@ import {
   Transaction,
   useTransactions,
 } from '@/components/TransactionsStore';
+import { getCategoryKey, normalizeCategory } from '@/utils/category';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import {
@@ -46,12 +47,20 @@ const createExpenseCsv = (expenses: Transaction[]) => {
 
 const getCategoryReports = (expenses: Transaction[]) => {
   const total = expenses.reduce((sum, item) => sum + item.amount, 0);
-  const grouped = expenses.reduce<Record<string, number>>((result, item) => {
-    result[item.category] = (result[item.category] ?? 0) + item.amount;
+  const grouped = expenses.reduce<Record<string, { name: string; amount: number }>>((result, item) => {
+    const key = getCategoryKey(item.category);
+    const name = normalizeCategory(item.category);
+
+    if (!result[key]) {
+      result[key] = { name, amount: 0 };
+    }
+
+    result[key].amount += item.amount;
+
     return result;
   }, {});
 
-  return Object.entries(grouped).map(([name, amount], index) => ({
+  return Object.values(grouped).map(({ name, amount }, index) => ({
     name,
     amount,
     percent: total > 0 ? Math.round((amount / total) * 100) : 0,
