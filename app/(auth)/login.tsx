@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import { saveToken } from '../../utils/storage';
 import AuthForm from '../../components/AuthForm';
 import api from '../../utils/api';
-import { useTransactions } from '../../components/TransactionsStore';
 import { loginWithFirebase, logoutFromFirebase } from '../../utils/auth';
 import { getApiErrorMessage, getFirebaseAuthErrorMessage } from '../../utils/errors';
 
@@ -11,7 +10,6 @@ export default function LoginScreen() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { refreshTransactions } = useTransactions();
 
   const handleLogin = async (data: any) => {
     setIsLoading(true);
@@ -51,7 +49,6 @@ export default function LoginScreen() {
         return;
       }
 
-      await refreshTransactions();
       router.replace('/'); 
     } catch (err: any) {
       setError(getApiErrorMessage(err, 'Terjadi kesalahan saat login.'));
