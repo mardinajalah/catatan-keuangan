@@ -9,14 +9,11 @@ import { getCategoryKey, normalizeCategory } from '@/utils/category';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import {
-  ArrowDownLeft,
-  ArrowUpRight,
   CalendarDays,
   ChartNoAxesColumnIncreasing,
   CircleDollarSign,
   Download,
   ReceiptText,
-  WalletCards,
 } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
@@ -68,34 +65,19 @@ const getCategoryReports = (expenses: Transaction[]) => {
   }));
 };
 
-const ReportCard = ({
+const SummaryMetric = ({
   title,
   value,
   caption,
-  Icon,
-  accent,
 }: {
   title: string;
   value: number;
   caption: string;
-  Icon: React.ComponentType<any>;
-  accent: string;
 }) => (
-  <View className='bg-white rounded-lg p-4 flex-1'>
-    <View className='flex-row items-center justify-between mb-4'>
-      <View
-        className='w-10 h-10 rounded-full items-center justify-center'
-        style={{ backgroundColor: `${accent}18` }}
-      >
-        <Icon
-          color={accent}
-          size={20}
-        />
-      </View>
-      <Text className='text-[#666] text-xs font-semibold'>{title}</Text>
-    </View>
-    <Text className='text-[#222] text-lg font-bold'>{formatCurrency(value)}</Text>
-    <Text className='text-[#666] text-xs mt-1'>{caption}</Text>
+  <View className='flex-1 rounded-lg bg-white/15 px-3 py-3'>
+    <Text className='text-white/70 text-xs font-semibold'>{title}</Text>
+    <Text className='text-white font-bold mt-1'>{formatCurrency(value)}</Text>
+    <Text className='text-white/60 text-xs mt-1'>{caption}</Text>
   </View>
 );
 
@@ -135,6 +117,11 @@ const Laporan = () => {
   const expenseTotal = selectedExpenses.reduce((sum, item) => sum + item.amount, 0);
   const balanceTotal = incomeTotal - expenseTotal;
   const categoryReports = getCategoryReports(selectedExpenses);
+  const recentExpenses = selectedExpenses.slice(0, 5);
+  const balanceInsight =
+    balanceTotal >= 0
+      ? 'Saldo bulan ini masih positif.'
+      : 'Pengeluaran bulan ini lebih besar dari pemasukan.';
 
   const monthlyBars = months.slice(0, 4).reverse().map((month) => {
     const income = incomes
@@ -146,20 +133,10 @@ const Laporan = () => {
 
     return {
       label: formatMonthLabel(month).split(' ')[0],
-      income: income > 0 ? Math.max(18, Math.round(income / 8000)) : 4,
-      expense: expense > 0 ? Math.max(18, Math.round(expense / 2000)) : 4,
+      income: income > 0 ? Math.min(64, Math.max(18, Math.round(income / 8000))) : 4,
+      expense: expense > 0 ? Math.min(64, Math.max(18, Math.round(expense / 2000))) : 4,
     };
   });
-
-  const insights = [
-    selectedExpenses.length > 0
-      ? `Ada ${selectedExpenses.length} pengeluaran di ${selectedMonthLabel}.`
-      : `Belum ada pengeluaran di ${selectedMonthLabel}.`,
-    balanceTotal >= 0
-      ? 'Saldo masih positif karena pemasukan lebih besar dari pengeluaran.'
-      : 'Pengeluaran bulan ini lebih besar dari pemasukan.',
-    'Laporan ini diperbarui secara otomatis dari server.',
-  ];
 
   if (isLoading && transactions.length === 0) {
     return (
@@ -200,41 +177,27 @@ const Laporan = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 12, gap: 12 }}
       >
-        <View className='bg-[#4E71FF] rounded-lg p-5'>
-          <View className='flex-row items-center justify-between'>
-            <View>
-              <Text className='text-white/80 font-semibold'>Ringkasan {selectedMonthLabel}</Text>
-              <Text className='text-white text-3xl font-bold mt-2'>{formatCurrency(balanceTotal)}</Text>
-            </View>
-            <View className='w-12 h-12 rounded-full bg-white/20 items-center justify-center'>
-              <CircleDollarSign
-                color='white'
-                size={26}
-              />
-            </View>
-          </View>
-
-          <View className='h-px bg-white/20 my-4' />
-
-          <View className='flex-row justify-between'>
-            <View>
-              <Text className='text-white/70 text-xs'>Pemasukan</Text>
-              <Text className='text-white font-bold mt-1'>{formatCurrency(incomeTotal)}</Text>
-            </View>
-            <View className='items-end'>
-              <Text className='text-white/70 text-xs'>Pengeluaran</Text>
-              <Text className='text-white font-bold mt-1'>{formatCurrency(expenseTotal)}</Text>
-            </View>
-          </View>
-        </View>
-
         <View className='bg-white rounded-lg p-4'>
-          <View className='flex-row items-center gap-2 mb-3'>
-            <CalendarDays
-              color='#5409DA'
-              size={20}
-            />
-            <Text className='text-[#222] font-bold text-base'>Pilih Bulan Export</Text>
+          <View className='flex-row items-center justify-between gap-3 mb-3'>
+            <View className='flex-row items-center gap-2'>
+              <CalendarDays
+                color='#5409DA'
+                size={20}
+              />
+              <Text className='text-[#222] font-bold text-base'>Periode Laporan</Text>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleExportCsv}
+              className='bg-[#5409DA] rounded-full px-3 py-2 flex-row items-center gap-1.5'
+            >
+              <Download
+                color='white'
+                size={14}
+              />
+              <Text className='text-white font-bold text-xs'>CSV</Text>
+            </TouchableOpacity>
           </View>
 
           <View className='flex-row flex-wrap gap-2'>
@@ -254,44 +217,36 @@ const Laporan = () => {
               );
             })}
           </View>
+        </View>
 
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={handleExportCsv}
-            className='mt-4 bg-[#5409DA] rounded-lg py-3.5 flex-row items-center justify-center gap-2'
-          >
-            <Download
-              color='white'
-              size={18}
+        <View className='bg-[#4E71FF] rounded-lg p-5'>
+          <View className='flex-row items-center justify-between gap-4'>
+            <View className='flex-1'>
+              <Text className='text-white/80 font-semibold'>Ringkasan {selectedMonthLabel}</Text>
+              <Text className='text-white text-3xl font-bold mt-2'>{formatCurrency(balanceTotal)}</Text>
+              <Text className='text-white/70 text-xs mt-2'>{balanceInsight}</Text>
+            </View>
+            <View className='w-12 h-12 rounded-full bg-white/20 items-center justify-center'>
+              <CircleDollarSign
+                color='white'
+                size={26}
+              />
+            </View>
+          </View>
+
+          <View className='flex-row gap-3 mt-4'>
+            <SummaryMetric
+              title='Pemasukan'
+              value={incomeTotal}
+              caption={`${selectedIncomes.length} transaksi`}
             />
-            <Text className='text-white font-bold'>Export Pengeluaran CSV</Text>
-          </TouchableOpacity>
+            <SummaryMetric
+              title='Pengeluaran'
+              value={expenseTotal}
+              caption={`${selectedExpenses.length} transaksi`}
+            />
+          </View>
         </View>
-
-        <View className='flex-row gap-3'>
-          <ReportCard
-            title='Pemasukan'
-            value={incomeTotal}
-            caption={`${selectedIncomes.length} transaksi tercatat`}
-            Icon={ArrowDownLeft}
-            accent='#16a34a'
-          />
-          <ReportCard
-            title='Pengeluaran'
-            value={expenseTotal}
-            caption={`${selectedExpenses.length} transaksi tercatat`}
-            Icon={ArrowUpRight}
-            accent='#ef4444'
-          />
-        </View>
-
-        <ReportCard
-          title='Saldo Bersih'
-          value={balanceTotal}
-          caption={`Sisa dari ${selectedMonthLabel}`}
-          Icon={WalletCards}
-          accent='#4E71FF'
-        />
 
         <View className='bg-white rounded-lg p-4'>
           <View className='flex-row items-center justify-between mb-4'>
@@ -300,18 +255,18 @@ const Laporan = () => {
                 color='#5409DA'
                 size={20}
               />
-              <Text className='text-[#222] font-bold text-base'>Grafik Bulanan</Text>
+              <Text className='text-[#222] font-bold text-base'>Tren 4 Bulan</Text>
             </View>
             <Text className='text-[#666] text-xs'>{months.length} bulan</Text>
           </View>
 
-          <View className='flex-row items-end justify-between h-32'>
+          <View className='flex-row items-end justify-between h-24'>
             {monthlyBars.map((item) => (
               <View
                 key={item.label}
                 className='items-center flex-1'
               >
-                <View className='h-24 flex-row items-end gap-1'>
+                <View className='h-16 flex-row items-end gap-1'>
                   <View
                     className='w-3 rounded-full bg-[#4E71FF]'
                     style={{ height: item.income }}
@@ -338,46 +293,51 @@ const Laporan = () => {
           </View>
         </View>
 
-        <View className='bg-white rounded-lg p-4'>
-          <View className='flex-row items-center gap-2 mb-4'>
-            <ReceiptText
-              color='#5409DA'
-              size={20}
-            />
-            <Text className='text-[#222] font-bold text-base'>Kategori Pengeluaran</Text>
+        <View className='bg-white rounded-lg p-4 mb-4'>
+          <View className='flex-row items-center justify-between mb-4'>
+            <View className='flex-row items-center gap-2'>
+              <ReceiptText
+                color='#5409DA'
+                size={20}
+              />
+              <Text className='text-[#222] font-bold text-base'>Pengeluaran</Text>
+            </View>
+            <Text className='text-[#666] text-xs'>{selectedExpenses.length} transaksi</Text>
           </View>
 
-          <View className='gap-4'>
-            {categoryReports.map((item) => (
-              <View key={item.name}>
-                <View className='flex-row items-center justify-between mb-2'>
-                  <Text className='text-[#222] font-semibold'>{item.name}</Text>
-                  <Text className='text-[#222] font-bold'>{formatCurrency(item.amount)}</Text>
+          {categoryReports.length > 0 ? (
+            <View className='gap-4'>
+              {categoryReports.map((item) => (
+                <View key={item.name}>
+                  <View className='flex-row items-center justify-between mb-2'>
+                    <Text className='text-[#222] font-semibold'>{item.name}</Text>
+                    <Text className='text-[#222] font-bold'>{formatCurrency(item.amount)}</Text>
+                  </View>
+                  <View className='h-3 rounded-full bg-[#f6f5fb] overflow-hidden'>
+                    <View
+                      className='h-full rounded-full'
+                      style={{ width: `${item.percent}%`, backgroundColor: item.color }}
+                    />
+                  </View>
                 </View>
-                <View className='h-3 rounded-full bg-[#f6f5fb] overflow-hidden'>
-                  <View
-                    className='h-full rounded-full'
-                    style={{ width: `${item.percent}%`, backgroundColor: item.color }}
-                  />
-                </View>
-              </View>
-            ))}
+              ))}
+            </View>
+          ) : (
+            <Text className='text-[#666] leading-5'>Belum ada data pengeluaran untuk bulan ini.</Text>
+          )}
 
-            {categoryReports.length === 0 && (
-              <Text className='text-[#666] leading-5'>Belum ada data pengeluaran untuk bulan ini.</Text>
+          <View className='h-px bg-[#f0eef8] my-4' />
+
+          <View className='flex-row items-center justify-between mb-3'>
+            <Text className='text-[#222] font-bold'>Transaksi Terbaru</Text>
+            {selectedExpenses.length > recentExpenses.length && (
+              <Text className='text-[#666] text-xs'>5 terbaru</Text>
             )}
           </View>
-        </View>
-
-        <View className='bg-white rounded-lg p-4'>
-          <Text className='text-[#222] font-bold text-base mb-3'>Data Pengeluaran</Text>
 
           <View className='gap-3'>
-            {selectedExpenses.map((item) => (
-              <View
-                key={item.id}
-                className='border-b border-[#f0eef8] pb-3'
-              >
+            {recentExpenses.map((item, index) => (
+              <View key={item.id} className={index === recentExpenses.length - 1 ? '' : 'border-b border-[#f0eef8] pb-3'}>
                 <View className='flex-row justify-between gap-3'>
                   <View className='flex-1'>
                     <Text className='text-[#222] font-bold'>{item.title}</Text>
@@ -391,33 +351,9 @@ const Laporan = () => {
               </View>
             ))}
 
-            {selectedExpenses.length === 0 && (
-              <Text className='text-[#666] leading-5'>Tidak ada pengeluaran yang bisa diexport.</Text>
+            {recentExpenses.length === 0 && (
+              <Text className='text-[#666] leading-5'>Tidak ada pengeluaran yang bisa ditampilkan.</Text>
             )}
-          </View>
-        </View>
-
-        <View className='bg-white rounded-lg p-4 mb-4'>
-          <View className='flex-row items-center gap-2 mb-3'>
-            <CalendarDays
-              color='#5409DA'
-              size={20}
-            />
-            <Text className='text-[#222] font-bold text-base'>Catatan Laporan</Text>
-          </View>
-
-          <View className='gap-3'>
-            {insights.map((item, index) => (
-              <View
-                key={item}
-                className='flex-row gap-3'
-              >
-                <View className='w-7 h-7 rounded-full bg-[#f6f5fb] items-center justify-center'>
-                  <Text className='text-[#5409DA] font-bold text-xs'>{index + 1}</Text>
-                </View>
-                <Text className='text-[#666] flex-1 leading-5'>{item}</Text>
-              </View>
-            ))}
           </View>
         </View>
       </ScrollView>
