@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
-import { Mail, Lock, User } from 'lucide-react-native';
+import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react-native';
 
 interface AuthFormProps {
   type: 'login' | 'register';
@@ -14,11 +14,19 @@ export default function AuthForm({ type, isLoading = false, errorMessage = null,
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const isLogin = type === 'login';
   
   const handleSubmit = () => {
-    onSubmit({ name: !isLogin ? name : undefined, email, password });
+    onSubmit({ 
+      name: !isLogin ? name : undefined, 
+      email, 
+      password,
+      confirmPassword: !isLogin ? confirmPassword : undefined
+    });
   };
   
   return (
@@ -80,13 +88,45 @@ export default function AuthForm({ type, isLoading = false, errorMessage = null,
               className="flex-1 text-base text-gray-900"
               placeholder="Masukkan password Anda"
               placeholderTextColor="#9ca3af"
-              secureTextEntry
+              secureTextEntry={!showPassword}
               value={password}
               onChangeText={setPassword}
               editable={!isLoading}
             />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              {showPassword ? (
+                <EyeOff size={20} color="#9ca3af" />
+              ) : (
+                <Eye size={20} color="#9ca3af" />
+              )}
+            </TouchableOpacity>
           </View>
         </View>
+
+        {!isLogin && (
+          <View className="mb-6">
+            <Text className="text-sm font-medium text-gray-700 mb-2">Konfirmasi Password</Text>
+            <View className="flex-row items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+              <Lock size={20} color="#9ca3af" style={{ marginRight: 12 }} />
+              <TextInput 
+                className="flex-1 text-base text-gray-900"
+                placeholder="Masukkan kembali password Anda"
+                placeholderTextColor="#9ca3af"
+                secureTextEntry={!showConfirmPassword}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                editable={!isLoading}
+              />
+              <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                {showConfirmPassword ? (
+                  <EyeOff size={20} color="#9ca3af" />
+                ) : (
+                  <Eye size={20} color="#9ca3af" />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
         
         {errorMessage && (
           <Text className="text-red-500 text-sm mb-4 text-center">{errorMessage}</Text>
