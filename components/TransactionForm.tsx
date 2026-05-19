@@ -5,7 +5,7 @@ import {
 } from '@/components/TransactionsStore';
 import { normalizeCategory } from '@/utils/category';
 import { useRouter } from 'expo-router';
-import { Banknote, Tag } from 'lucide-react-native';
+import { Banknote, Tag, CheckCircle, XCircle } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -17,6 +17,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
@@ -60,7 +62,9 @@ const TransactionForm: React.FC<Props> = ({
     return () => subscription.remove();
   }, []);
 
-  const [isSaving, setIsSaving] = useState(false);
+  type SaveStatus = 'idle' | 'loading' | 'success' | 'error';
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [statusMessage, setStatusMessage] = useState('');
 
   const handleSave = async () => {
     const amountValue = Number(amount);
@@ -69,24 +73,26 @@ const TransactionForm: React.FC<Props> = ({
     const currentBalance = incomeTotal - expenseTotal;
 
     if (!amountValue) {
-      Alert.alert('Nominal belum diisi', 'Masukkan jumlah transaksi terlebih dahulu.');
+      setSaveStatus('error');
+      setStatusMessage('Masukkan jumlah transaksi terlebih dahulu.');
       return;
     }
 
     if (!title.trim()) {
-      Alert.alert('Nama belum diisi', 'Masukkan nama transaksi terlebih dahulu.');
+      setSaveStatus('error');
+      setStatusMessage('Masukkan nama transaksi terlebih dahulu.');
       return;
     }
 
     if (type === 'expense' && amountValue > currentBalance) {
-      Alert.alert(
-        'Transaksi gagal',
-        `Jumlah pengeluaran melebihi saldo saat ini. Saldo tersedia: Rp${currentBalance.toLocaleString('id-ID')}.`,
-      );
+      setSaveStatus('error');
+      setStatusMessage(`Jumlah pengeluaran melebihi saldo saat ini. Saldo tersedia: Rp${currentBalance.toLocaleString('id-ID')}.`);
       return;
     }
 
-    setIsSaving(true);
+    setSaveStatus('loading');
+    setStatusMessage('Menyimpan...');
+
     try {
       await addTransaction({
         type,
@@ -102,17 +108,16 @@ const TransactionForm: React.FC<Props> = ({
       setCategory('');
       Keyboard.dismiss();
 
-      Alert.alert('Transaksi berhasil', 'Data transaksi berhasil disimpan.', [
-        {
-          text: 'OK',
-          onPress: () => router.back(),
-        },
-      ]);
+      setSaveStatus('success');
+      setStatusMessage('Data transaksi berhasil disimpan.');
+      
+      setTimeout(() => {
+        setSaveStatus('idle');
+        router.back();
+      }, 1500);
     } catch (error) {
-      Alert.alert('Error', 'Gagal menyimpan transaksi. Silakan coba lagi.');
-    } finally {
-      setIsSaving(true);
-      setIsSaving(false);
+      setSaveStatus('error');
+      setStatusMessage('Gagal menyimpan transaksi. Silakan coba lagi.');
     }
   };
 
@@ -194,14 +199,52 @@ const TransactionForm: React.FC<Props> = ({
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={handleSave}
-            disabled={isSaving}
-            className={`bg-[#4E71FF] rounded-2xl py-4 items-center ${isSaving ? 'opacity-70' : ''}`}
+            disabled={saveStatus === 'loading'}
+            className={`bg-[#4E71FF] rounded-2xl py-4 items-center ${saveStatus === 'loading' ? 'opacity-70' : ''}`}
           >
             <Text className='text-white font-bold text-lg'>
-              {isSaving ? 'Menyimpan...' : 'Simpan'}
+              {saveStatus === 'loading' ? 'Menyimpan...' : 'Simpan'}
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Modal Status */}
+        <Modal
+          visible={saveStatus !== 'idle'}
+          transparent={true}
+          animationType="fade"
+        >
+          <View className="flex-1 justify-center items-center bg-black/50">
+            <View className="bg-white rounded-2xl p-6 items-center w-[80%] max-w-sm shadow-xl">
+              {saveStatus === 'loading' && (
+                <ActivityIndicator size="large" color="#4E71FF" className="mb-4" />
+              )}
+              {saveStatus === 'success' && (
+                <CheckCircle size={48} color="#10B981" className="mb-4" />
+              )}
+              {saveStatus === 'error' && (
+                <XCircle size={48} color="#EF4444" className="mb-4" />
+              )}
+              
+              <Text className="text-xl font-bold text-[#222] text-center mb-2">
+                {saveStatus === 'loading' ? 'Memproses' : saveStatus === 'success' ? 'Berhasil!' : 'Terjadi Kesalahan'}
+              </Text>
+              
+              <Text className="text-base text-[#666] text-center mb-6">
+                {statusMessage}
+              </Text>
+
+              {saveStatus === 'error' && (
+                <TouchableOpacity
+                  onPress={() => setSaveStatus('idle')}
+                  className="bg-[#EF4444] rounded-xl py-3 px-8 w-full items-center"
+                >
+                  <Text className="text-white font-bold text-base">Tutup</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </Modal>
       </View>
     </KeyboardAvoidingView>
   );
