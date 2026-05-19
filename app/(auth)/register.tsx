@@ -15,6 +15,11 @@ export default function RegisterScreen() {
     setIsLoading(true);
     setError(null);
     try {
+      if (data.password !== data.confirmPassword) {
+        setError('Password dan konfirmasi password tidak cocok');
+        return;
+      }
+
       if (!data.name || !data.email || !data.password) {
         setError('Nama, email, dan password wajib diisi');
         return;
