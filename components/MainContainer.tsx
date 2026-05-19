@@ -4,6 +4,9 @@ import { Animated, Dimensions, PanResponder, Text, TouchableOpacity, View } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
+const SWIPE_ACTIVATION_DISTANCE = 8;
+const SWIPE_DISTANCE_THRESHOLD = width * 0.22;
+const SWIPE_VELOCITY_THRESHOLD = 0.35;
 
 interface TabItem {
   label: string;
@@ -40,7 +43,7 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
         const horizontalMove = Math.abs(gesture.dx);
         const verticalMove = Math.abs(gesture.dy);
 
-        return horizontalMove > 12 && horizontalMove > verticalMove * 1.4;
+        return horizontalMove > SWIPE_ACTIVATION_DISTANCE && horizontalMove > verticalMove * 1.15;
       },
 
       onPanResponderGrant: () => {
@@ -59,18 +62,25 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
       },
 
       onPanResponderRelease: (_, gesture) => {
-        const movedX = startX.current + gesture.dx;
-        const rawIndex = -movedX / width;
-        const newIndex = Math.round(rawIndex);
+        const currentIndex = Math.round(-startX.current / width);
+        const hasEnoughDistance = Math.abs(gesture.dx) > SWIPE_DISTANCE_THRESHOLD;
+        const hasEnoughVelocity = Math.abs(gesture.vx) > SWIPE_VELOCITY_THRESHOLD;
+        let nextIndex = currentIndex;
 
-        const clampedIndex = Math.max(0, Math.min(newIndex, tabs.length - 1));
+        if (hasEnoughDistance || hasEnoughVelocity) {
+          nextIndex = gesture.dx < 0 ? currentIndex + 1 : currentIndex - 1;
+        }
+
+        const clampedIndex = Math.max(0, Math.min(nextIndex, tabs.length - 1));
 
         setActive(clampedIndex);
 
         Animated.spring(translateX, {
           toValue: -clampedIndex * width,
           useNativeDriver: false,
-        }).start();
+        }).start(() => {
+          startX.current = -clampedIndex * width;
+        });
       },
     }),
   ).current;
