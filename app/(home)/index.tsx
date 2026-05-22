@@ -1,8 +1,9 @@
 import MainContainer from '@/components/MainContainer';
 import { router } from 'expo-router';
 import { LogOut } from 'lucide-react-native';
-import { TouchableOpacity, Modal, View, Text, ActivityIndicator } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
+import CustomModal from '../../components/CustomModal';
 import Laporan from './laporan';
 import Pemasukan from './pemasukan';
 import Pengeluaran from './pengeluaran';
@@ -64,46 +65,21 @@ export default function Home() {
       />
 
       {/* Modal Logout */}
-      <Modal
+      {/* Modal Logout */}
+      <CustomModal
         visible={showLogoutModal}
-        transparent={true}
-        animationType="fade"
-      >
-        <View className="flex-1 justify-center items-center bg-black/50">
-          <View className="bg-white rounded-2xl p-6 items-center w-[80%] max-w-sm shadow-xl">
-            {isLoggingOut ? (
-              <ActivityIndicator size="large" color="#EF4444" className="mb-4" />
-            ) : (
-              <LogOut size={48} color="#EF4444" className="mb-4" />
-            )}
-            
-            <Text className="text-xl font-bold text-[#222] text-center mb-2">
-              {isLoggingOut ? 'Memproses' : 'Keluar Akun'}
-            </Text>
-            
-            <Text className="text-base text-[#666] text-center mb-6">
-              {isLoggingOut ? 'Sedang keluar...' : 'Apakah Anda yakin ingin keluar dari aplikasi?'}
-            </Text>
-
-            {!isLoggingOut && (
-              <View className="flex-row w-full gap-3">
-                <TouchableOpacity
-                  onPress={() => setShowLogoutModal(false)}
-                  className="flex-1 bg-gray-100 rounded-xl py-3 items-center"
-                >
-                  <Text className="text-gray-700 font-bold text-base">Batal</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={executeLogout}
-                  className="flex-1 bg-[#EF4444] rounded-xl py-3 items-center"
-                >
-                  <Text className="text-white font-bold text-base">Ya, Keluar</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </View>
-      </Modal>
+        type={isLoggingOut ? 'loading' : 'confirm'}
+        title={isLoggingOut ? 'Memproses' : 'Keluar Akun'}
+        message={isLoggingOut ? 'Sedang keluar...' : 'Apakah Anda yakin ingin keluar dari aplikasi?'}
+        icon={!isLoggingOut ? <LogOut size={48} color="#EF4444" className="mb-4" /> : undefined}
+        loadingColor="#EF4444"
+        primaryButtonText={!isLoggingOut ? 'Ya, Keluar' : undefined}
+        onPrimaryPress={!isLoggingOut ? executeLogout : undefined}
+        primaryButtonVariant="danger"
+        secondaryButtonText={!isLoggingOut ? 'Batal' : undefined}
+        onSecondaryPress={!isLoggingOut ? () => setShowLogoutModal(false) : undefined}
+        secondaryButtonVariant="gray"
+      />
     </>
   );
 }

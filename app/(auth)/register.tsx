@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Alert } from 'react-native';
 import AuthForm from '../../components/AuthForm';
+import CustomModal from '../../components/CustomModal';
 import api from '../../utils/api';
 import { deleteFirebaseUser, logoutFromFirebase, registerWithFirebase } from '../../utils/auth';
 import { getApiErrorMessage, getFirebaseAuthErrorMessage } from '../../utils/errors';
@@ -10,6 +10,7 @@ export default function RegisterScreen() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleRegister = async (data: any) => {
     setIsLoading(true);
@@ -65,9 +66,7 @@ export default function RegisterScreen() {
 
       await logoutFromFirebase();
       
-      Alert.alert('Sukses', 'Registrasi berhasil. Silakan login.', [
-        { text: 'OK', onPress: () => router.replace('/login') }
-      ]);
+      setShowSuccessModal(true);
     } catch (err: any) {
       setError(getApiErrorMessage(err, 'Terjadi kesalahan saat register.'));
     } finally {
@@ -80,12 +79,26 @@ export default function RegisterScreen() {
   };
 
   return (
-    <AuthForm 
-      type="register"
-      isLoading={isLoading}
-      errorMessage={error}
-      onSubmit={handleRegister}
-      onFooterLinkPress={handleGoToLogin}
-    />
+    <>
+      <AuthForm 
+        type="register"
+        isLoading={isLoading}
+        errorMessage={error}
+        onSubmit={handleRegister}
+        onFooterLinkPress={handleGoToLogin}
+      />
+      <CustomModal
+        visible={showSuccessModal}
+        type="success"
+        title="Sukses"
+        message="Registrasi berhasil. Silakan login."
+        primaryButtonText="OK"
+        onPrimaryPress={() => {
+          setShowSuccessModal(false);
+          router.replace('/login');
+        }}
+        primaryButtonVariant="primary"
+      />
+    </>
   );
 }

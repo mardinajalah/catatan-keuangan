@@ -17,7 +17,8 @@ import {
   ReceiptText,
 } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import CustomModal, { CustomModalType } from '../../components/CustomModal';
 
 const formatCurrency = (value: number) => {
   return 'Rp' + value.toLocaleString('id-ID');
@@ -86,6 +87,22 @@ const Laporan = () => {
   const { transactions, incomes, expenses, isLoading, refreshTransactions } = useTransactions();
   const currentMonth = getCurrentDateInput().slice(0, 7);
 
+  const [modalConfig, setModalConfig] = useState<{
+    visible: boolean;
+    type: CustomModalType;
+    title: string;
+    message: string;
+  }>({
+    visible: false,
+    type: 'info',
+    title: '',
+    message: '',
+  });
+
+  const showModal = (type: CustomModalType, title: string, message: string) => {
+    setModalConfig({ visible: true, type, title, message });
+  };
+
   const months = useMemo(() => {
     const transactionMonths = Array.from(
       new Set(transactions.map((transaction) => getTransactionMonth(transaction.date))),
@@ -145,7 +162,7 @@ const Laporan = () => {
 
   const handleExportCsv = async () => {
     if (selectedExpenses.length === 0) {
-      Alert.alert('Tidak ada data', `Belum ada pengeluaran untuk ${selectedMonthLabel}.`);
+      showModal('warning', 'Tidak ada data', `Belum ada pengeluaran untuk ${selectedMonthLabel}.`);
       return;
     }
 
@@ -157,7 +174,7 @@ const Laporan = () => {
 
     const canShare = await Sharing.isAvailableAsync();
     if (!canShare) {
-      Alert.alert('Export berhasil', `File tersimpan di ${file.uri}`);
+      showModal('success', 'Export berhasil', `File tersimpan di ${file.uri}`);
       return;
     }
 
@@ -362,6 +379,16 @@ const Laporan = () => {
           </View>
         </View>
       </ScrollView>
+
+      <CustomModal
+        visible={modalConfig.visible}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        primaryButtonText="OK"
+        onPrimaryPress={() => setModalConfig((prev) => ({ ...prev, visible: false }))}
+        primaryButtonVariant="primary"
+      />
     </View>
   );
 };

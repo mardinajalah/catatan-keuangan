@@ -5,10 +5,9 @@ import {
 } from '@/components/TransactionsStore';
 import { normalizeCategory } from '@/utils/category';
 import { useRouter } from 'expo-router';
-import { Banknote, Tag, CheckCircle, XCircle } from 'lucide-react-native';
+import { Banknote, Tag } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
   AppState,
   Keyboard,
   KeyboardAvoidingView,
@@ -17,9 +16,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Modal,
-  ActivityIndicator,
 } from 'react-native';
+import CustomModal from './CustomModal';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 type Props = {
@@ -209,42 +207,15 @@ const TransactionForm: React.FC<Props> = ({
         </View>
 
         {/* Modal Status */}
-        <Modal
+        <CustomModal
           visible={saveStatus !== 'idle'}
-          transparent={true}
-          animationType="fade"
-        >
-          <View className="flex-1 justify-center items-center bg-black/50">
-            <View className="bg-white rounded-2xl p-6 items-center w-[80%] max-w-sm shadow-xl">
-              {saveStatus === 'loading' && (
-                <ActivityIndicator size="large" color="#4E71FF" className="mb-4" />
-              )}
-              {saveStatus === 'success' && (
-                <CheckCircle size={48} color="#10B981" className="mb-4" />
-              )}
-              {saveStatus === 'error' && (
-                <XCircle size={48} color="#EF4444" className="mb-4" />
-              )}
-              
-              <Text className="text-xl font-bold text-[#222] text-center mb-2">
-                {saveStatus === 'loading' ? 'Memproses' : saveStatus === 'success' ? 'Berhasil!' : 'Terjadi Kesalahan'}
-              </Text>
-              
-              <Text className="text-base text-[#666] text-center mb-6">
-                {statusMessage}
-              </Text>
-
-              {saveStatus === 'error' && (
-                <TouchableOpacity
-                  onPress={() => setSaveStatus('idle')}
-                  className="bg-[#EF4444] rounded-xl py-3 px-8 w-full items-center"
-                >
-                  <Text className="text-white font-bold text-base">Tutup</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        </Modal>
+          type={saveStatus === 'loading' ? 'loading' : saveStatus === 'success' ? 'success' : saveStatus === 'error' ? 'error' : 'info'}
+          title={saveStatus === 'loading' ? 'Memproses' : saveStatus === 'success' ? 'Berhasil!' : 'Terjadi Kesalahan'}
+          message={statusMessage}
+          primaryButtonText={saveStatus === 'error' ? 'Tutup' : undefined}
+          onPrimaryPress={saveStatus === 'error' ? () => setSaveStatus('idle') : undefined}
+          primaryButtonVariant="danger"
+        />
       </View>
     </KeyboardAvoidingView>
   );
