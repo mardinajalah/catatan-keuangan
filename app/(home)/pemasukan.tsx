@@ -16,6 +16,7 @@ const Pemasukan: React.FC = () => {
   return (
     <View className='flex-1 pt-3'>
       <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ gap: 10, paddingVertical: 12 }}
         refreshControl={
           <RefreshControl
