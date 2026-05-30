@@ -8,6 +8,7 @@ type Item = {
   description?: string;
   amount: number | string;
   Icon?: React.ComponentType<any>;
+  onPress?: () => void;
 };
 
 type Props = {
@@ -50,6 +51,7 @@ const DayGroup: React.FC<Props> = ({ dateLabel, total, items }) => {
             description={it.description}
             amount={it.amount}
             Icon={it.Icon}
+            onPress={it.onPress}
           />
         ))}
       </View>

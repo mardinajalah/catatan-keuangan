@@ -2,12 +2,14 @@ import DayGroup from '@/components/dayGroup';
 import { TransactionListSkeleton } from '@/components/Skeleton';
 import { groupTransactionsByDate, useTransactions } from '@/components/TransactionsStore';
 import { BanknoteArrowUp } from 'lucide-react-native';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import CustomModal from '@/components/CustomModal';
 
 const Pengeluaran: React.FC = () => {
   const { expenses, isLoading, refreshTransactions } = useTransactions();
   const groups = useMemo(() => groupTransactionsByDate(expenses), [expenses]);
+  const [noteModal, setNoteModal] = useState({ visible: false, note: '' });
 
   if (isLoading) {
     return <TransactionListSkeleton />;
@@ -22,7 +24,7 @@ const Pengeluaran: React.FC = () => {
           <RefreshControl
             refreshing={isLoading}
             onRefresh={refreshTransactions}
-            tintColor="#4E71FF"
+            tintColor='#4E71FF'
             colors={['#4E71FF']}
           />
         }
@@ -35,9 +37,10 @@ const Pengeluaran: React.FC = () => {
             items={group.items.map((item) => ({
               id: item.id,
               title: item.title,
-              description: item.note || item.category,
+              description: item.category,
               amount: item.amount,
               Icon: BanknoteArrowUp,
+              onPress: () => setNoteModal({ visible: true, note: item.note || '' }),
             }))}
           />
         ))}
@@ -49,6 +52,15 @@ const Pengeluaran: React.FC = () => {
           </View>
         )}
       </ScrollView>
+
+      <CustomModal
+        visible={noteModal.visible}
+        type='info'
+        title='Deskripsi Transaksi'
+        message={noteModal.note.length === 0 ? 'tidak ada deskripsi' : noteModal.note}
+        primaryButtonText='Tutup'
+        onPrimaryPress={() => setNoteModal({ visible: false, note: '' })}
+      />
     </View>
   );
 };
