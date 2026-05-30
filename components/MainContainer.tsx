@@ -1,11 +1,9 @@
 import { ChevronLeft, Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, PanResponder, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Animated, PanResponder, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const { width } = Dimensions.get('window');
 const SWIPE_ACTIVATION_DISTANCE = 8;
-const SWIPE_DISTANCE_THRESHOLD = width * 0.22;
 const SWIPE_VELOCITY_THRESHOLD = 0.35;
 
 interface TabItem {
@@ -24,9 +22,16 @@ interface Props {
 }
 
 export default function MainContainer({ title, tabs, onFabPress, showBackButton = false, onBackPress, initialActiveTab = 0, renderRightAction }: Props) {
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const widthRef = useRef(width);
   const [active, setActive] = useState(initialActiveTab ?? 0);
   const translateX = useRef(new Animated.Value(0)).current;
   const startX = useRef(0);
+
+  useEffect(() => {
+    widthRef.current = width;
+  }, [width]);
 
   useEffect(() => {
     setActive(initialActiveTab ?? 0);
@@ -34,7 +39,7 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
     // pastikan translateX ikut pindah
     translateX.setValue(-(initialActiveTab ?? 0) * width);
     startX.current = -(initialActiveTab ?? 0) * width;
-  }, [initialActiveTab, translateX]);
+  }, [initialActiveTab, translateX, width]);
 
   // PAN RESPONDER (FIXED)
   const panResponder = useRef(
@@ -55,15 +60,16 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
       onPanResponderMove: (_, gesture) => {
         const next = startX.current + gesture.dx;
 
-        const leftBound = -(tabs.length - 1) * width;
+        const leftBound = -(tabs.length - 1) * widthRef.current;
         const clamped = Math.max(Math.min(next, 0), leftBound);
 
         translateX.setValue(clamped);
       },
 
       onPanResponderRelease: (_, gesture) => {
-        const currentIndex = Math.round(-startX.current / width);
-        const hasEnoughDistance = Math.abs(gesture.dx) > SWIPE_DISTANCE_THRESHOLD;
+        const currentIndex = Math.round(-startX.current / widthRef.current);
+        const swipeDistanceThreshold = widthRef.current * 0.22;
+        const hasEnoughDistance = Math.abs(gesture.dx) > swipeDistanceThreshold;
         const hasEnoughVelocity = Math.abs(gesture.vx) > SWIPE_VELOCITY_THRESHOLD;
         let nextIndex = currentIndex;
 
@@ -76,10 +82,10 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
         setActive(clampedIndex);
 
         Animated.spring(translateX, {
-          toValue: -clampedIndex * width,
+          toValue: -clampedIndex * widthRef.current,
           useNativeDriver: false,
         }).start(() => {
-          startX.current = -clampedIndex * width;
+          startX.current = -clampedIndex * widthRef.current;
         });
       },
     }),
@@ -90,7 +96,7 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
       toValue: -active * width,
       useNativeDriver: false,
     }).start();
-  }, [active, translateX]);
+  }, [active, translateX, width]);
 
   // ===== INDICATOR ANIMATION (FIXED) =====
   const inputRange = tabs.map((_, i) => -i * width).reverse();
@@ -129,7 +135,7 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
   };
 
   return (
-    <SafeAreaView className='flex-1 bg-[#4E71FF]'>
+    <View style={{ paddingTop: insets.top }} className='flex-1 bg-[#4E71FF]'>
       {/* HEADER */}
       <View className='pb-2.5 px-4'>
         <View className='flex-row items-center justify-between mt-5'>
@@ -267,6 +273,6 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
           />
         </TouchableOpacity>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
