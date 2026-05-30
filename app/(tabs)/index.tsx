@@ -4,9 +4,9 @@ import { LogOut } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
 import CustomModal from '../../components/CustomModal';
-import Laporan from './laporan';
-import Pemasukan from './pemasukan';
-import Pengeluaran from './pengeluaran';
+import Laporan from '@/components/tabs/laporan';
+import Pemasukan from '@/components/tabs/pemasukan';
+import Pengeluaran from '@/components/tabs/pengeluaran';
 import { useTransactions } from '@/components/TransactionsStore';
 import { logoutFromFirebase } from '../../utils/auth';
 
@@ -47,21 +47,7 @@ export default function Home() {
           { label: 'Pemasukan', content: <Pemasukan /> },
           { label: 'Laporan', content: <Laporan /> },
         ]}
-        onFabPress={(active) => {
-          if (active === 0) {
-            router.push({
-              pathname: '/(tambahCatatan)',
-              params: { tab: '0' },
-            });
-          }
 
-          if (active === 1) {
-            router.push({
-              pathname: '/(tambahCatatan)',
-              params: { tab: '1' },
-            });
-          }
-        }}
       />
 
       {/* Modal Logout */}

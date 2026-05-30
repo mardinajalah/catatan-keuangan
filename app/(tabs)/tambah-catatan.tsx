@@ -1,13 +1,11 @@
 import MainContainer from '@/components/MainContainer';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import FormPengeluaran from './formPengeluaran';
-import FormPemasukan from './formPemasukan';
+import { useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import FormPemasukan from '@/components/tabs/formPemasukan';
+import FormPengeluaran from '@/components/tabs/formPengeluaran';
 
 export default function TambahCatatan() {
-  const router = useRouter();
   const { tab } = useLocalSearchParams();
-
   const [initialTab, setInitialTab] = useState(0);
 
   useEffect(() => {
@@ -21,9 +19,7 @@ export default function TambahCatatan() {
   return (
     <MainContainer
       title="Tambah Catatan"
-      showBackButton
-      onBackPress={() => router.back()}
-      initialActiveTab={initialTab} // ⬅️ penting
+      initialActiveTab={initialTab}
       tabs={[
         { label: 'Pengeluaran', content: <FormPengeluaran /> },
         { label: 'Pemasukan', content: <FormPemasukan /> },

@@ -18,7 +18,7 @@ import {
 } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import CustomModal, { CustomModalType } from '../../components/CustomModal';
+import CustomModal, { CustomModalType } from '@/components/CustomModal';
 
 const formatCurrency = (value: number) => {
   return 'Rp' + value.toLocaleString('id-ID');
