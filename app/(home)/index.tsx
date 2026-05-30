@@ -65,7 +65,6 @@ export default function Home() {
       />
 
       {/* Modal Logout */}
-      {/* Modal Logout */}
       <CustomModal
         visible={showLogoutModal}
         type={isLoggingOut ? 'loading' : 'confirm'}
