@@ -2,7 +2,7 @@
   "expo": {
     "name": "Catatan Keuangan",
     "slug": "catatan-keuangan",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "catatankeuangan",
@@ -18,7 +18,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "versionCode": 6,
+      "versionCode": 7,
       "package": "com.mardinmardin.catatankeuangan"
     },
     "web": {
