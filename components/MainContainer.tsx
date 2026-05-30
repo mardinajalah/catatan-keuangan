@@ -248,7 +248,7 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
       </View>
 
       {/* FLOATING BUTTON */}
-      {(active === 0 || active === 1) && !showBackButton && (
+      {(active === 0 || active === 1) && !showBackButton && onFabPress && (
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => onFabPress?.(active)}
