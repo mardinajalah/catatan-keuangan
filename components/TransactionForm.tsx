@@ -5,7 +5,7 @@ import {
 } from '@/components/TransactionsStore';
 import { normalizeCategory } from '@/utils/category';
 import { useRouter } from 'expo-router';
-import { Banknote, Tag } from 'lucide-react-native';
+import { Banknote, FileText, Tag } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   AppState,
@@ -49,6 +49,7 @@ const TransactionForm: React.FC<Props> = ({
   const [amount, setAmount] = useState('');
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
+  const [note, setNote] = useState('');
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (status) => {
@@ -97,13 +98,14 @@ const TransactionForm: React.FC<Props> = ({
         title: title.trim(),
         category: normalizeCategory(category),
         date: getCurrentDateInput(),
-        note: '',
+        note: note.trim(),
         amount: amountValue,
       });
 
       setAmount('');
       setTitle('');
       setCategory('');
+      setNote('');
       Keyboard.dismiss();
 
       setSaveStatus('success');
@@ -174,7 +176,7 @@ const TransactionForm: React.FC<Props> = ({
               </View>
             </View>
 
-            <View className='flex-row items-center py-4'>
+            <View className='flex-row items-center py-4 border-b border-[#f0eef8]'>
               <Tag
                 size={20}
                 color='#666'
@@ -187,6 +189,26 @@ const TransactionForm: React.FC<Props> = ({
                   placeholder={categoryPlaceholder}
                   placeholderTextColor='#999'
                   className='text-base font-medium text-[#222] mt-1'
+                />
+              </View>
+            </View>
+
+            <View className='flex-row items-start py-4'>
+              <FileText
+                size={20}
+                color='#666'
+                className='mt-1'
+              />
+              <View className='flex-1 ml-3'>
+                <Text className='text-[#666] text-xs'>Deskripsi (opsional)</Text>
+                <TextInput
+                  value={note}
+                  onChangeText={setNote}
+                  placeholder='Contoh: Catatan tambahan transaksi'
+                  placeholderTextColor='#999'
+                  multiline
+                  textAlignVertical='top'
+                  className='text-base font-medium text-[#222] mt-1 min-h-20'
                 />
               </View>
             </View>
