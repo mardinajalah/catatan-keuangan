@@ -12,7 +12,6 @@ import * as Sharing from 'expo-sharing';
 import {
   CalendarDays,
   ChartNoAxesColumnIncreasing,
-  CircleDollarSign,
   Download,
   ReceiptText,
 } from 'lucide-react-native';
@@ -21,7 +20,9 @@ import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-
 import CustomModal, { CustomModalType } from '@/components/CustomModal';
 
 const formatCurrency = (value: number) => {
-  return 'Rp' + value.toLocaleString('id-ID');
+  const prefix = value < 0 ? '-Rp' : 'Rp';
+
+  return prefix + Math.abs(value).toLocaleString('id-ID');
 };
 
 const escapeCsvValue = (value: string | number) => {
@@ -84,7 +85,7 @@ const SummaryMetric = ({
 );
 
 const Laporan = () => {
-  const { transactions, incomes, expenses, isLoading, refreshTransactions } = useTransactions();
+  const { transactions, incomes, expenses, currentBalance, isLoading, refreshTransactions } = useTransactions();
   const currentMonth = getCurrentDateInput().slice(0, 7);
 
   const [modalConfig, setModalConfig] = useState<{
@@ -133,13 +134,15 @@ const Laporan = () => {
 
   const incomeTotal = selectedIncomes.reduce((sum, item) => sum + item.amount, 0);
   const expenseTotal = selectedExpenses.reduce((sum, item) => sum + item.amount, 0);
-  const balanceTotal = incomeTotal - expenseTotal;
+  const monthlyCashFlow = incomeTotal - expenseTotal;
   const categoryReports = getCategoryReports(selectedExpenses);
   const recentExpenses = selectedExpenses.slice(0, 5);
   const balanceInsight =
-    balanceTotal >= 0
-      ? 'Saldo bulan ini masih positif.'
-      : 'Pengeluaran bulan ini lebih besar dari pemasukan.';
+    currentBalance >= 0
+      ? 'Total keseluruhan saldo'
+      : 'Total keseluruhan saldo minus';
+  const periodBalanceTitle = `Total Saldo ${selectedMonthLabel}`;
+  const periodBalanceInsight = monthlyCashFlow >= 0 ? 'Periode ini positif' : 'Periode ini minus';
 
   const monthlyBars = months.slice(0, 4).reverse().map((month) => {
     const income = incomes
@@ -242,21 +245,20 @@ const Laporan = () => {
         </View>
 
         <View className='bg-[#4E71FF] rounded-lg p-5'>
-          <View className='flex-row items-center justify-between gap-4'>
-            <View className='flex-1'>
-              <Text className='text-white/80 font-semibold'>Ringkasan {selectedMonthLabel}</Text>
-              <Text className='text-white text-3xl font-bold mt-2'>{formatCurrency(balanceTotal)}</Text>
-              <Text className='text-white/70 text-xs mt-2'>{balanceInsight}</Text>
-            </View>
-            <View className='w-12 h-12 rounded-full bg-white/20 items-center justify-center'>
-              <CircleDollarSign
-                color='white'
-                size={26}
-              />
-            </View>
+          <View className='flex-row gap-3'>
+            <SummaryMetric
+              title='Saldo Saat Ini'
+              value={currentBalance}
+              caption={balanceInsight}
+            />
+            <SummaryMetric
+              title={periodBalanceTitle}
+              value={monthlyCashFlow}
+              caption={periodBalanceInsight}
+            />
           </View>
 
-          <View className='flex-row gap-3 mt-4'>
+          <View className='flex-row gap-3 mt-3'>
             <SummaryMetric
               title='Pemasukan'
               value={incomeTotal}

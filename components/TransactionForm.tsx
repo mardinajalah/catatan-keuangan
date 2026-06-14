@@ -37,6 +37,12 @@ const formatAmountInput = (value: string) => {
   return Number(numbersOnly).toLocaleString('id-ID');
 };
 
+const formatCurrency = (value: number) => {
+  const prefix = value < 0 ? '-Rp' : 'Rp';
+
+  return prefix + Math.abs(value).toLocaleString('id-ID');
+};
+
 const TransactionForm: React.FC<Props> = ({
   type,
   amountLabel,
@@ -44,7 +50,7 @@ const TransactionForm: React.FC<Props> = ({
   categoryPlaceholder,
 }) => {
   const router = useRouter();
-  const { addTransaction, expenses, incomes } = useTransactions();
+  const { addTransaction, currentBalance } = useTransactions();
   const [scrollKey, setScrollKey] = useState(0);
   const [amount, setAmount] = useState('');
   const [title, setTitle] = useState('');
@@ -67,9 +73,6 @@ const TransactionForm: React.FC<Props> = ({
 
   const handleSave = async () => {
     const amountValue = Number(amount);
-    const incomeTotal = incomes.reduce((sum, item) => sum + item.amount, 0);
-    const expenseTotal = expenses.reduce((sum, item) => sum + item.amount, 0);
-    const currentBalance = incomeTotal - expenseTotal;
 
     if (!amountValue) {
       setSaveStatus('error');
@@ -85,7 +88,7 @@ const TransactionForm: React.FC<Props> = ({
 
     if (type === 'expense' && amountValue > currentBalance) {
       setSaveStatus('error');
-      setStatusMessage(`Jumlah pengeluaran melebihi saldo saat ini. Saldo tersedia: Rp${currentBalance.toLocaleString('id-ID')}.`);
+      setStatusMessage(`Jumlah pengeluaran melebihi saldo saat ini. Saldo tersedia: ${formatCurrency(currentBalance)}.`);
       return;
     }
 
@@ -115,7 +118,7 @@ const TransactionForm: React.FC<Props> = ({
         setSaveStatus('idle');
         router.back();
       }, 1500);
-    } catch (error) {
+    } catch {
       setSaveStatus('error');
       setStatusMessage('Gagal menyimpan transaksi. Silakan coba lagi.');
     }

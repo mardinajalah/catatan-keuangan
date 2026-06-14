@@ -38,6 +38,9 @@ type TransactionsContextValue = {
   transactions: Transaction[];
   incomes: Transaction[];
   expenses: Transaction[];
+  totalIncome: number;
+  totalExpense: number;
+  currentBalance: number;
   isLoading: boolean;
   addTransaction: (input: TransactionInput) => Promise<void>;
   refreshTransactions: () => Promise<void>;
@@ -45,16 +48,6 @@ type TransactionsContextValue = {
 };
 
 const TransactionsContext = createContext<TransactionsContextValue | null>(null);
-
-const normalizeDate = (value: string) => {
-  const trimmed = value.trim();
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-    return trimmed;
-  }
-
-  return new Date().toISOString().slice(0, 10);
-};
 
 export const getCurrentDateInput = () => {
   const date = new Date();
@@ -66,6 +59,23 @@ export const getCurrentDateInput = () => {
 };
 
 export const getTransactionMonth = (date: string) => date.slice(0, 7);
+
+export const getTransactionTotals = (transactions: Transaction[]) => {
+  return transactions.reduce(
+    (totals, transaction) => {
+      if (transaction.type === 'income') {
+        totals.income += transaction.amount;
+      } else {
+        totals.expense += transaction.amount;
+      }
+
+      totals.balance = totals.income - totals.expense;
+
+      return totals;
+    },
+    { income: 0, expense: 0, balance: 0 },
+  );
+};
 
 export const formatDateLabel = (date: string) => {
   const parsedDate = new Date(`${date}T00:00:00`);
@@ -160,11 +170,15 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const value = useMemo<TransactionsContextValue>(() => {
     const incomes = transactions.filter((transaction) => transaction.type === 'income');
     const expenses = transactions.filter((transaction) => transaction.type === 'expense');
+    const totals = getTransactionTotals(transactions);
 
     return {
       transactions,
       incomes,
       expenses,
+      totalIncome: totals.income,
+      totalExpense: totals.expense,
+      currentBalance: totals.balance,
       isLoading,
       refreshTransactions,
       clearTransactions,
