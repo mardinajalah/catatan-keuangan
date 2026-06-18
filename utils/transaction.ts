@@ -42,3 +42,36 @@ export const addTransaction = async (data: CreateTransactionData): Promise<Trans
     throw error;
   }
 };
+
+export interface UpdateTransactionData {
+  type?: 'INCOME' | 'EXPENSE';
+  amount?: number;
+  title?: string;
+  category?: string;
+  note?: string;
+  date?: string;
+}
+
+export interface DeleteTransactionResponse {
+  message: string;
+}
+
+export const updateTransaction = async (id: string, data: UpdateTransactionData): Promise<Transaction> => {
+  try {
+    const response = await api.put(`/transactions/${id}`, data);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating transaction ${id}:`, error);
+    throw error;
+  }
+};
+
+export const deleteTransaction = async (id: string): Promise<DeleteTransactionResponse> => {
+  try {
+    const response = await api.delete(`/transactions/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting transaction ${id}:`, error);
+    throw error;
+  }
+};
