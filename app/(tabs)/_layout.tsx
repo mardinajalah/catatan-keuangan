@@ -1,8 +1,12 @@
-import { Tabs } from 'expo-router';
+import { Tabs, router } from 'expo-router';
+import { HomeTabProvider, useHomeTab } from '@/components/HomeTabContext';
 import { Home, PlusCircle, User } from 'lucide-react-native';
 import React from 'react';
 
-export default function TabLayout() {
+function TabsNavigator() {
+  const { activeHomeTab } = useHomeTab();
+  const formTab = activeHomeTab === 1 ? '1' : '0';
+
   return (
     <Tabs
       screenOptions={{
@@ -36,6 +40,15 @@ export default function TabLayout() {
           title: 'Tambah',
           tabBarIcon: ({ color }) => <PlusCircle color={color} size={24} />,
         }}
+        listeners={{
+          tabPress: (event) => {
+            event.preventDefault();
+            router.push({
+              pathname: '/(tabs)/tambah-catatan',
+              params: { tab: formTab },
+            });
+          },
+        }}
       />
       <Tabs.Screen
         name="profile"
@@ -45,5 +58,13 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+  );
+}
+
+export default function TabLayout() {
+  return (
+    <HomeTabProvider>
+      <TabsNavigator />
+    </HomeTabProvider>
   );
 }

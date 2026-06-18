@@ -9,9 +9,11 @@ import Pemasukan from '@/components/tabs/pemasukan';
 import Pengeluaran from '@/components/tabs/pengeluaran';
 import { useTransactions } from '@/components/TransactionsStore';
 import { logoutFromFirebase } from '../../utils/auth';
+import { useHomeTab } from '@/components/HomeTabContext';
 
 export default function Home() {
   const { clearTransactions } = useTransactions();
+  const { setActiveHomeTab } = useHomeTab();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -37,6 +39,7 @@ export default function Home() {
     <>
       <MainContainer
         title='Catatan Keuangan'
+        onActiveTabChange={setActiveHomeTab}
         renderRightAction={() => (
           <TouchableOpacity onPress={handleLogout}>
             <LogOut size={24} color="white" />

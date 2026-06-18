@@ -17,11 +17,12 @@ interface Props {
   initialActiveTab?: number;
   showBackButton?: boolean;
   onFabPress?: (activeIndex: number) => void;
+  onActiveTabChange?: (activeIndex: number) => void;
   onBackPress?: () => void;
   renderRightAction?: () => React.ReactNode;
 }
 
-export default function MainContainer({ title, tabs, onFabPress, showBackButton = false, onBackPress, initialActiveTab = 0, renderRightAction }: Props) {
+export default function MainContainer({ title, tabs, onFabPress, onActiveTabChange, showBackButton = false, onBackPress, initialActiveTab = 0, renderRightAction }: Props) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const widthRef = useRef(width);
@@ -35,11 +36,12 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
 
   useEffect(() => {
     setActive(initialActiveTab ?? 0);
+    onActiveTabChange?.(initialActiveTab ?? 0);
 
     // pastikan translateX ikut pindah
     translateX.setValue(-(initialActiveTab ?? 0) * width);
     startX.current = -(initialActiveTab ?? 0) * width;
-  }, [initialActiveTab, translateX, width]);
+  }, [initialActiveTab, onActiveTabChange, translateX, width]);
 
   // PAN RESPONDER (FIXED)
   const panResponder = useRef(
@@ -80,6 +82,7 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
         const clampedIndex = Math.max(0, Math.min(nextIndex, tabs.length - 1));
 
         setActive(clampedIndex);
+        onActiveTabChange?.(clampedIndex);
 
         Animated.spring(translateX, {
           toValue: -clampedIndex * widthRef.current,
@@ -126,6 +129,7 @@ export default function MainContainer({ title, tabs, onFabPress, showBackButton 
     translateX.stopAnimation(() => {
       startX.current = -idx * width;
       setActive(idx);
+      onActiveTabChange?.(idx);
 
       Animated.spring(translateX, {
         toValue: -idx * width,
