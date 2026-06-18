@@ -3,11 +3,11 @@ import { TransactionListSkeleton } from '@/components/Skeleton';
 import { groupTransactionsByDate, useTransactions, Transaction } from '@/components/TransactionsStore';
 import { BanknoteArrowDown } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import TransactionDetailModal from '@/components/TransactionDetailModal';
 
 const Pemasukan: React.FC = () => {
-  const { incomes, isLoading, refreshTransactions } = useTransactions();
+  const { incomes, isLoading, refreshTransactions, updateTransaction, deleteTransaction } = useTransactions();
   const groups = useMemo(() => groupTransactionsByDate(incomes), [incomes]);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
@@ -57,11 +57,11 @@ const Pemasukan: React.FC = () => {
         visible={selectedTransaction !== null}
         transaction={selectedTransaction}
         onClose={() => setSelectedTransaction(null)}
-        onEdit={(tx) => {
-          Alert.alert('Fitur Edit', `Fitur Edit untuk transaksi "${tx.title}" sedang dalam pengembangan.`);
+        onEdit={async (tx, updatedData) => {
+          await updateTransaction(tx.id, updatedData);
         }}
-        onDelete={(tx) => {
-          Alert.alert('Fitur Hapus', `Fitur Hapus untuk transaksi "${tx.title}" sedang dalam pengembangan.`);
+        onDelete={async (tx) => {
+          await deleteTransaction(tx.id);
         }}
       />
     </View>

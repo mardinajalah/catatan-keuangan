@@ -1,5 +1,10 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
-import { getTransactions, addTransaction as addTransactionApi } from '../utils/transaction';
+import {
+  getTransactions,
+  addTransaction as addTransactionApi,
+  updateTransaction as updateTransactionApi,
+  deleteTransaction as deleteTransactionApi,
+} from '../utils/transaction';
 import { getAuthToken } from '../utils/auth';
 import { auth } from '../utils/firebase';
 import { normalizeCategory } from '../utils/category';
@@ -43,6 +48,8 @@ type TransactionsContextValue = {
   currentBalance: number;
   isLoading: boolean;
   addTransaction: (input: TransactionInput) => Promise<void>;
+  updateTransaction: (id: string, input: Partial<TransactionInput>) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
   refreshTransactions: () => Promise<void>;
   clearTransactions: () => void;
 };
@@ -195,6 +202,31 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           await refreshTransactions();
         } catch (error) {
           console.error('Failed to add transaction:', error);
+          throw error;
+        }
+      },
+      updateTransaction: async (id, input) => {
+        try {
+          await updateTransactionApi(id, {
+            type: input.type ? (input.type.toUpperCase() as 'INCOME' | 'EXPENSE') : undefined,
+            amount: input.amount,
+            title: input.title ? input.title.trim() : undefined,
+            category: input.category !== undefined ? normalizeCategory(input.category) : undefined,
+            note: input.note !== undefined ? input.note.trim() : undefined,
+            date: input.date,
+          });
+          await refreshTransactions();
+        } catch (error) {
+          console.error('Failed to update transaction:', error);
+          throw error;
+        }
+      },
+      deleteTransaction: async (id) => {
+        try {
+          await deleteTransactionApi(id);
+          await refreshTransactions();
+        } catch (error) {
+          console.error('Failed to delete transaction:', error);
           throw error;
         }
       },
