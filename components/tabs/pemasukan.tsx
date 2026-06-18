@@ -1,15 +1,15 @@
 import DayGroup from '@/components/dayGroup';
 import { TransactionListSkeleton } from '@/components/Skeleton';
-import { groupTransactionsByDate, useTransactions } from '@/components/TransactionsStore';
+import { groupTransactionsByDate, useTransactions, Transaction } from '@/components/TransactionsStore';
 import { BanknoteArrowDown } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
-import CustomModal from '@/components/CustomModal';
+import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
+import TransactionDetailModal from '@/components/TransactionDetailModal';
 
 const Pemasukan: React.FC = () => {
   const { incomes, isLoading, refreshTransactions } = useTransactions();
   const groups = useMemo(() => groupTransactionsByDate(incomes), [incomes]);
-  const [noteModal, setNoteModal] = useState({ visible: false, note: '' });
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   if (isLoading) {
     return <TransactionListSkeleton />;
@@ -40,7 +40,7 @@ const Pemasukan: React.FC = () => {
               description: item.category,
               amount: item.amount,
               Icon: BanknoteArrowDown,
-              onPress: () => setNoteModal({ visible: true, note: item.note || '' }),
+              onPress: () => setSelectedTransaction(item),
             }))}
           />
         ))}
@@ -53,13 +53,16 @@ const Pemasukan: React.FC = () => {
         )}
       </ScrollView>
 
-      <CustomModal
-        visible={noteModal.visible}
-        type='info'
-        title='Deskripsi Transaksi'
-        message={noteModal.note.length === 0 ? 'tidak ada deskripsi' : noteModal.note}
-        primaryButtonText='Tutup'
-        onPrimaryPress={() => setNoteModal({ visible: false, note: '' })}
+      <TransactionDetailModal
+        visible={selectedTransaction !== null}
+        transaction={selectedTransaction}
+        onClose={() => setSelectedTransaction(null)}
+        onEdit={(tx) => {
+          Alert.alert('Fitur Edit', `Fitur Edit untuk transaksi "${tx.title}" sedang dalam pengembangan.`);
+        }}
+        onDelete={(tx) => {
+          Alert.alert('Fitur Hapus', `Fitur Hapus untuk transaksi "${tx.title}" sedang dalam pengembangan.`);
+        }}
       />
     </View>
   );
